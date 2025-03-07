@@ -259,9 +259,9 @@ public class PlaytimePlugin implements FlutterPlugin, MethodCallHandler, Activit
             public void onUserReceivesReward(PlaytimeRewardResponse adjoeRewardResponse) {
                 if (adjoeRewardResponse != null) {
                     Map<String, Integer> resultMap = new HashMap<>();
-                    resultMap.put("reward", adjoeRewardResponse.getReward());
-                    resultMap.put("already_spent", adjoeRewardResponse.getAlreadySpentCoins());
-                    resultMap.put("available_for_payout", adjoeRewardResponse.getAvailablePayoutCoins());
+                    resultMap.put("reward", adjoeRewardResponse.reward);
+                    resultMap.put("already_spent", adjoeRewardResponse.alreadySpentCoins);
+                    resultMap.put("available_for_payout", adjoeRewardResponse.availablePayoutCoins);
                     result.success(resultMap);
                 } else { // should never happen
                     result.success(null);
@@ -270,8 +270,8 @@ public class PlaytimePlugin implements FlutterPlugin, MethodCallHandler, Activit
 
             @Override
             public void onUserReceivesRewardError(PlaytimeRewardResponseError adjoeRewardResponseError) {
-                if (adjoeRewardResponseError != null && adjoeRewardResponseError.getException() != null) {
-                    result.error("0", adjoeRewardResponseError.getException().getMessage(), null);
+                if (adjoeRewardResponseError != null && adjoeRewardResponseError.exception != null) {
+                    result.error("0", adjoeRewardResponseError.exception.getMessage(), null);
                 } else { // should never happen
                     result.error("-1", "Unknown error", null);
                 }

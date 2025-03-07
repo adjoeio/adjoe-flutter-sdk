@@ -1,5 +1,5 @@
 group 'io.adjoe.sdk.flutter'
-version '3.0.0'
+version '3.1.0-beta.1'
 
 buildscript {
     repositories {
@@ -34,6 +34,7 @@ android {
         disable 'InvalidPackage'
     }
     dependencies {
-        implementation 'io.adjoe:adjoe-sdk-android:3.0.0'
+        implementation 'io.adjoe:adjoe-sdk-android:3.1.0-beta.1'
     }
+    namespace 'io.adjoe.sdk.flutter'
 }
