@@ -1,5 +1,5 @@
 group 'io.adjoe.sdk.flutter'
-version '3.2.0-beta.1'
+version '3.1.1'
 
 buildscript {
     repositories {
@@ -28,13 +28,13 @@ android {
     compileSdkVersion 33
 
     defaultConfig {
-        minSdkVersion 21
+        minSdkVersion 16
     }
     lintOptions {
         disable 'InvalidPackage'
     }
     dependencies {
-        implementation 'io.adjoe:adjoe-sdk-android:3.2.0-beta.1'
+        implementation 'io.adjoe:adjoe-sdk-android:3.1.1'
     }
     namespace 'io.adjoe.sdk.flutter'
 }
