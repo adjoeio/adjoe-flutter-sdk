@@ -141,17 +141,32 @@ struct PlaytimeOptions: Codable {
 struct PlaytimeStatusDetails: Codable {
   /// A flag indicating if the current user is marked as a fraud user.
   var isFraud: Bool
+  /// Indicates whether the user is eligible to request campaigns.
+  var campaignsAvailable: Bool
+  /// Provides optional context explaining the eligibility state.
+  /// This list captures the current environment or account constraints, such as:
+  /// * `READY`: Fully eligible.
+  /// * `BLOCKED`: No campaigns available.
+  /// * `VPN_DETECTED`: Campaigns conditionally blocked.
+  /// * `GEO_MISMATCH`: No available campaigns for user region.
+  var campaignsState: [String?]
 
   static func fromList(_ list: [Any?]) -> PlaytimeStatusDetails? {
     let isFraud = list[0] as! Bool
+    let campaignsAvailable = list[1] as! Bool
+    let campaignsState = list[2] as! [String?]
 
     return PlaytimeStatusDetails(
-      isFraud: isFraud
+      isFraud: isFraud,
+      campaignsAvailable: campaignsAvailable,
+      campaignsState: campaignsState
     )
   }
   func toList() -> [Any?] {
     return [
-      isFraud
+      isFraud,
+      campaignsAvailable,
+      campaignsState,
     ]
   }
 }
@@ -439,6 +454,19 @@ struct PlaytimeEventConfig: Codable {
   var totalCoinsCollected: Int64? = nil
   /// Maximum possible coins for this config.
   var totalCoinsPossible: Int64? = nil
+  /// The amount of time in seconds to the next level.
+  /// Supported only on Android.
+  var secondsToNextLevel: Int64? = nil
+  /// Maximum possible coins for this config if there was no promotion.
+  var totalOriginalCoinsPossible: Int64? = nil
+  /// Total amount of coins for all sequential events with promotion multiplier.
+  var totalSequentialCoins: Int64? = nil
+  /// Total amount of coins for all sequential events without promotion multiplier.
+  var totalOriginalSequentialCoins: Int64? = nil
+  /// Total amount of coins for all bonus events with promotion multiplier.
+  var totalBonusCoins: Int64? = nil
+  /// Total amount of coins for all bonus events without promotion multiplier.
+  var totalOriginalBonusCoins: Int64? = nil
   /// Cashback reward configuration for in-app purchases. A missing value means that the feature
   /// is not supported for the campaign or the SDK.
   var cashbackReward: PlaytimeCashbackConfig? = nil
@@ -451,11 +479,17 @@ struct PlaytimeEventConfig: Codable {
     let timeBasedActions = list[2] as! [PlaytimeRewardAction?]
     let totalCoinsCollected: Int64? = isNullish(list[3]) ? nil : (list[3] is Int64? ? list[3] as! Int64? : Int64(list[3] as! Int32))
     let totalCoinsPossible: Int64? = isNullish(list[4]) ? nil : (list[4] is Int64? ? list[4] as! Int64? : Int64(list[4] as! Int32))
+    let secondsToNextLevel: Int64? = isNullish(list[5]) ? nil : (list[5] is Int64? ? list[5] as! Int64? : Int64(list[5] as! Int32))
+    let totalOriginalCoinsPossible: Int64? = isNullish(list[6]) ? nil : (list[6] is Int64? ? list[6] as! Int64? : Int64(list[6] as! Int32))
+    let totalSequentialCoins: Int64? = isNullish(list[7]) ? nil : (list[7] is Int64? ? list[7] as! Int64? : Int64(list[7] as! Int32))
+    let totalOriginalSequentialCoins: Int64? = isNullish(list[8]) ? nil : (list[8] is Int64? ? list[8] as! Int64? : Int64(list[8] as! Int32))
+    let totalBonusCoins: Int64? = isNullish(list[9]) ? nil : (list[9] is Int64? ? list[9] as! Int64? : Int64(list[9] as! Int32))
+    let totalOriginalBonusCoins: Int64? = isNullish(list[10]) ? nil : (list[10] is Int64? ? list[10] as! Int64? : Int64(list[10] as! Int32))
     var cashbackReward: PlaytimeCashbackConfig? = nil
-    if let cashbackRewardList: [Any?] = nilOrValue(list[5]) {
+    if let cashbackRewardList: [Any?] = nilOrValue(list[11]) {
       cashbackReward = PlaytimeCashbackConfig.fromList(cashbackRewardList)
     }
-    let multipliersActions = list[6] as! [PlaytimeRewardActionMultiplier?]
+    let multipliersActions = list[12] as! [PlaytimeRewardActionMultiplier?]
 
     return PlaytimeEventConfig(
       sequentialActions: sequentialActions,
@@ -463,6 +497,12 @@ struct PlaytimeEventConfig: Codable {
       timeBasedActions: timeBasedActions,
       totalCoinsCollected: totalCoinsCollected,
       totalCoinsPossible: totalCoinsPossible,
+      secondsToNextLevel: secondsToNextLevel,
+      totalOriginalCoinsPossible: totalOriginalCoinsPossible,
+      totalSequentialCoins: totalSequentialCoins,
+      totalOriginalSequentialCoins: totalOriginalSequentialCoins,
+      totalBonusCoins: totalBonusCoins,
+      totalOriginalBonusCoins: totalOriginalBonusCoins,
       cashbackReward: cashbackReward,
       multipliersActions: multipliersActions
     )
@@ -474,6 +514,12 @@ struct PlaytimeEventConfig: Codable {
       timeBasedActions,
       totalCoinsCollected,
       totalCoinsPossible,
+      secondsToNextLevel,
+      totalOriginalCoinsPossible,
+      totalSequentialCoins,
+      totalOriginalSequentialCoins,
+      totalBonusCoins,
+      totalOriginalBonusCoins,
       cashbackReward?.toList(),
       multipliersActions,
     ]
@@ -1347,7 +1393,15 @@ protocol PlaytimeStudio {
   func showAppDetailsWithToken(token: String, campaignAppId: String, completion: @escaping (Result<Void, Error>) -> Void)
   /// Use this method to forward the open chatbot
   /// Supported for both android and iOS.
+  /// @campaign The campaign you want to open
   func openChatbot(campaign: PlaytimeCampaign?, completion: @escaping (Result<Void, Error>) -> Void)
+  /// Execute a engagement request for the given campaign.
+  /// This method tracks view execution locally and ensures only one view tracking request
+  /// is sent to the backend per campaign within a 30-minute window.
+  /// Supported for both android and iOS.
+  /// @campaign The campaign you want to open
+  /// @engagementType The type of engagement you want to execute, values are "default" | "engaged".
+  func executeEngagement(campaign: PlaytimeCampaign, engagementType: String, completion: @escaping (Result<Void, Error>) -> Void)
 }
 
 /// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
@@ -1558,6 +1612,7 @@ class PlaytimeStudioSetup {
     }
     /// Use this method to forward the open chatbot
     /// Supported for both android and iOS.
+    /// @campaign The campaign you want to open
     let openChatbotChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.adjoe.PlaytimeStudio.openChatbot", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
       openChatbotChannel.setMessageHandler { message, reply in
@@ -1574,6 +1629,30 @@ class PlaytimeStudioSetup {
       }
     } else {
       openChatbotChannel.setMessageHandler(nil)
+    }
+    /// Execute a engagement request for the given campaign.
+    /// This method tracks view execution locally and ensures only one view tracking request
+    /// is sent to the backend per campaign within a 30-minute window.
+    /// Supported for both android and iOS.
+    /// @campaign The campaign you want to open
+    /// @engagementType The type of engagement you want to execute, values are "default" | "engaged".
+    let executeEngagementChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.adjoe.PlaytimeStudio.executeEngagement", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      executeEngagementChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let campaignArg = args[0] as! PlaytimeCampaign
+        let engagementTypeArg = args[1] as! String
+        api.executeEngagement(campaign: campaignArg, engagementType: engagementTypeArg) { result in
+          switch result {
+          case .success:
+            reply(wrapResult(nil))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      executeEngagementChannel.setMessageHandler(nil)
     }
   }
 }

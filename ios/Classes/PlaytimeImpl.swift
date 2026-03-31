@@ -90,15 +90,33 @@ class PlaytimeImpl: Playtime {
         Task {
             do {
                 let statusResponse = try await PlaytimeMonetize.Playtime.getStatus()
-                let statusResponseData = try JSONSerialization.data(
-                    withJSONObject: statusResponse.toJSONObject()
-                )
-                
-                completion(.success(try JSONUtil.decoder.decode(
-                    PlaytimeStatus.self, from: statusResponseData
-                )))
+                completion(.success(mapStatus(statusResponse)))
             } catch {
                 completion(.failure(error))
+            }
+        }
+    }
+    
+    private func mapStatus(_ status: PlaytimeMonetize.PlaytimeStatus) -> PlaytimeStatus {
+        let details = PlaytimeStatusDetails(
+            isFraud: status.details.isFraud,
+            campaignsAvailable: status.details.campaignsAvailable,
+            campaignsState: mapCampaignsState(status.details.campaignsState)
+        )
+        return PlaytimeStatus(isInitialized: status.isInitialized, details: details)
+    }
+    
+    private func mapCampaignsState(_ states: [PlaytimeMonetize.PlaytimeCampaignsState]) -> [String?] {
+        return states.map { state in
+            switch state {
+            case .blocked:
+                return "BLOCKED"
+            case .vpn:
+                return "VPN_DETECTED"
+            case .geoMismatch:
+                return "GEO_MISMATCH"
+            default:
+                return "READY"
             }
         }
     }

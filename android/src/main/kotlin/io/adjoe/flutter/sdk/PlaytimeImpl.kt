@@ -178,7 +178,28 @@ class PlaytimeImpl() : Playtime {
     }
 
     private fun mapStatus(playtimeStatus: io.adjoe.sdk.PlaytimeStatus): PlaytimeStatus {
-        val details = PlaytimeStatusDetails(playtimeStatus.details.isFraud)
+        val details = PlaytimeStatusDetails(
+            playtimeStatus.details.isFraud,
+            playtimeStatus.details.campaignsAvailable,
+            mapCampaignsState(playtimeStatus.details.campaignsState)
+        )
         return PlaytimeStatus(playtimeStatus.isInitialized, details)
+    }
+
+    private fun mapCampaignsState(playtimeCampaignsState: List<io.adjoe.sdk.PlaytimeCampaignsState>): List<String> {
+        val states: MutableList<String> = mutableListOf()
+
+        playtimeCampaignsState.forEach {
+            val state = when(it) {
+                io.adjoe.sdk.PlaytimeCampaignsState.BLOCKED -> "BLOCKED"
+                io.adjoe.sdk.PlaytimeCampaignsState.VPN_DETECTED -> "VPN_DETECTED"
+                io.adjoe.sdk.PlaytimeCampaignsState.GEO_MISMATCH -> "GEO_MISMATCH"
+                else -> "READY"
+            }
+
+            states.add(state)
+        }
+
+        return states
     }
 }

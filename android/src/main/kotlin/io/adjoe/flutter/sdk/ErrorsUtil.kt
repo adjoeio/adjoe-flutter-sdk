@@ -12,4 +12,8 @@ object ErrorsUtil {
     fun getActivityIsNullError(): Exception {
         return Exception("activity is null")
     }
+
+    fun campaingIsNullError(): Exception {
+        return Exception("campaign is null")
+    }
 }

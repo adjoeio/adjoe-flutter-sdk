@@ -59,6 +59,12 @@ object CampaignsUtil {
                 timeBasedActions = mapPlaytimeRewardActions(playtimeEventConfig.timeBasedActions),
                 totalCoinsCollected = playtimeEventConfig.totalCoinsCollected?.toLong(),
                 totalCoinsPossible = playtimeEventConfig.totalCoinsPossible?.toLong(),
+                totalOriginalCoinsPossible = playtimeEventConfig.totalOriginalCoinsPossible?.toLong(),
+                totalSequentialCoins = playtimeEventConfig.totalSequentialCoins?.toLong(),
+                totalOriginalSequentialCoins = playtimeEventConfig.totalOriginalSequentialCoins?.toLong(),
+                totalBonusCoins = playtimeEventConfig.totalBonusCoins?.toLong(),
+                totalOriginalBonusCoins = playtimeEventConfig.totalOriginalBonusCoins?.toLong(),
+                secondsToNextLevel = playtimeEventConfig.secondsToNextLevel?.toLong(),
                 cashbackReward = mapPlaytimeCashbackConfig(playtimeEventConfig.cashbackReward),
                 multipliersActions = mapPlaytimeMultipliersActions(playtimeEventConfig.multipliersActions),
             )

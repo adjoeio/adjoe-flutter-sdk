@@ -125,14 +125,29 @@ class PlaytimeOptions {
 class PlaytimeStatusDetails {
   PlaytimeStatusDetails({
     required this.isFraud,
+    required this.campaignsAvailable,
+    required this.campaignsState,
   });
 
   /// A flag indicating if the current user is marked as a fraud user.
   bool isFraud;
 
+  /// Indicates whether the user is eligible to request campaigns.
+  bool campaignsAvailable;
+
+  /// Provides optional context explaining the eligibility state.
+  /// This list captures the current environment or account constraints, such as:
+  /// * `READY`: Fully eligible.
+  /// * `BLOCKED`: No campaigns available.
+  /// * `VPN_DETECTED`: Campaigns conditionally blocked.
+  /// * `GEO_MISMATCH`: No available campaigns for user region.
+  List<String?> campaignsState;
+
   Object encode() {
     return <Object?>[
       isFraud,
+      campaignsAvailable,
+      campaignsState,
     ];
   }
 
@@ -140,6 +155,8 @@ class PlaytimeStatusDetails {
     result as List<Object?>;
     return PlaytimeStatusDetails(
       isFraud: result[0]! as bool,
+      campaignsAvailable: result[1]! as bool,
+      campaignsState: (result[2] as List<Object?>?)!.cast<String?>(),
     );
   }
 }
@@ -458,6 +475,12 @@ class PlaytimeEventConfig {
     required this.timeBasedActions,
     this.totalCoinsCollected,
     this.totalCoinsPossible,
+    this.secondsToNextLevel,
+    this.totalOriginalCoinsPossible,
+    this.totalSequentialCoins,
+    this.totalOriginalSequentialCoins,
+    this.totalBonusCoins,
+    this.totalOriginalBonusCoins,
     this.cashbackReward,
     required this.multipliersActions,
   });
@@ -479,6 +502,25 @@ class PlaytimeEventConfig {
   /// Maximum possible coins for this config.
   int? totalCoinsPossible;
 
+  /// The amount of time in seconds to the next level.
+  /// Supported only on Android.
+  int? secondsToNextLevel;
+
+  /// Maximum possible coins for this config if there was no promotion.
+  int? totalOriginalCoinsPossible;
+
+  /// Total amount of coins for all sequential events with promotion multiplier.
+  int? totalSequentialCoins;
+
+  /// Total amount of coins for all sequential events without promotion multiplier.
+  int? totalOriginalSequentialCoins;
+
+  /// Total amount of coins for all bonus events with promotion multiplier.
+  int? totalBonusCoins;
+
+  /// Total amount of coins for all bonus events without promotion multiplier.
+  int? totalOriginalBonusCoins;
+
   /// Cashback reward configuration for in-app purchases. A missing value means that the feature
   /// is not supported for the campaign or the SDK.
   PlaytimeCashbackConfig? cashbackReward;
@@ -493,6 +535,12 @@ class PlaytimeEventConfig {
       timeBasedActions,
       totalCoinsCollected,
       totalCoinsPossible,
+      secondsToNextLevel,
+      totalOriginalCoinsPossible,
+      totalSequentialCoins,
+      totalOriginalSequentialCoins,
+      totalBonusCoins,
+      totalOriginalBonusCoins,
       cashbackReward?.encode(),
       multipliersActions,
     ];
@@ -506,10 +554,16 @@ class PlaytimeEventConfig {
       timeBasedActions: (result[2] as List<Object?>?)!.cast<PlaytimeRewardAction?>(),
       totalCoinsCollected: result[3] as int?,
       totalCoinsPossible: result[4] as int?,
-      cashbackReward: result[5] != null
-          ? PlaytimeCashbackConfig.decode(result[5]! as List<Object?>)
+      secondsToNextLevel: result[5] as int?,
+      totalOriginalCoinsPossible: result[6] as int?,
+      totalSequentialCoins: result[7] as int?,
+      totalOriginalSequentialCoins: result[8] as int?,
+      totalBonusCoins: result[9] as int?,
+      totalOriginalBonusCoins: result[10] as int?,
+      cashbackReward: result[11] != null
+          ? PlaytimeCashbackConfig.decode(result[11]! as List<Object?>)
           : null,
-      multipliersActions: (result[6] as List<Object?>?)!.cast<PlaytimeRewardActionMultiplier?>(),
+      multipliersActions: (result[12] as List<Object?>?)!.cast<PlaytimeRewardActionMultiplier?>(),
     );
   }
 }
@@ -1674,7 +1728,7 @@ class PlaytimeStudio {
 
   /// Use this method to deeplink installed apps
   /// Supported for both android and iOS.
-  Future<void> _showInstalledApps() async {
+  Future<void> showInstalledApps() async {
     const String __pigeon_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.showInstalledApps';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
@@ -1698,7 +1752,7 @@ class PlaytimeStudio {
 
   /// Use this method to deeplink app details
   /// Supported for both android and iOS.
-  Future<void> _showAppDetails(PlaytimeCampaign campaign) async {
+  Future<void> showAppDetails(PlaytimeCampaign campaign) async {
     const String __pigeon_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.showAppDetails';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
@@ -1722,7 +1776,7 @@ class PlaytimeStudio {
 
   /// Use this method to deeplink app details with token
   /// Supported for both android and iOS.
-  Future<void> _showAppDetailsWithToken(String token, String campaignAppId) async {
+  Future<void> showAppDetailsWithToken(String token, String campaignAppId) async {
     const String __pigeon_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.showAppDetailsWithToken';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
@@ -1746,7 +1800,8 @@ class PlaytimeStudio {
 
   /// Use this method to forward the open chatbot
   /// Supported for both android and iOS.
-  Future<void> _openChatbot(PlaytimeCampaign? campaign) async {
+  /// @campaign The campaign you want to open
+  Future<void> openChatbot(PlaytimeCampaign? campaign) async {
     const String __pigeon_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.openChatbot';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
@@ -1755,6 +1810,34 @@ class PlaytimeStudio {
     );
     final List<Object?>? __pigeon_replyList =
         await __pigeon_channel.send(<Object?>[campaign]) as List<Object?>?;
+    if (__pigeon_replyList == null) {
+      throw _createConnectionError(__pigeon_channelName);
+    } else if (__pigeon_replyList.length > 1) {
+      throw PlatformException(
+        code: __pigeon_replyList[0]! as String,
+        message: __pigeon_replyList[1] as String?,
+        details: __pigeon_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  /// Execute a engagement request for the given campaign.
+  /// This method tracks view execution locally and ensures only one view tracking request
+  /// is sent to the backend per campaign within a 30-minute window.
+  /// Supported for both android and iOS.
+  /// @campaign The campaign you want to open
+  /// @engagementType The type of engagement you want to execute, values are "default" | "engaged".
+  Future<void> executeEngagement(PlaytimeCampaign campaign, String engagementType) async {
+    const String __pigeon_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.executeEngagement';
+    final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
+      __pigeon_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: __pigeon_binaryMessenger,
+    );
+    final List<Object?>? __pigeon_replyList =
+        await __pigeon_channel.send(<Object?>[campaign, engagementType]) as List<Object?>?;
     if (__pigeon_replyList == null) {
       throw _createConnectionError(__pigeon_channelName);
     } else if (__pigeon_replyList.length > 1) {

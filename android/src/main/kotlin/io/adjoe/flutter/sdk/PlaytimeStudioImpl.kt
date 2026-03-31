@@ -10,6 +10,8 @@ import io.adjoe.sdk.studio.PlaytimeOpenInstalledCampaignListener
 import io.adjoe.sdk.studio.PlaytimeOpenStoreListener
 import io.adjoe.sdk.studio.PlaytimePermissionsListener
 import io.adjoe.sdk.studio.PlaytimeResponseError
+import io.adjoe.sdk.studio.PlaytimeEngagementType
+import io.adjoe.sdk.studio.PlaytimeExecuteEngagementListener
 
 class PlaytimeStudioImpl() : PlaytimeStudio {
     private var activity: Activity? = null
@@ -207,16 +209,13 @@ class PlaytimeStudioImpl() : PlaytimeStudio {
     }
 
     override fun showInstalledApps(callback: (Result<Unit>) -> Unit) {
-        // TODO: Uncomment this when this function is in native library
-        callback(Result.success(Unit))
-        /*
         if (activity == null) {
             return callback(Result.failure(ErrorsUtil.getActivityIsNullError()))
         }
 
         io.adjoe.sdk.studio.PlaytimeStudio.showInstalledApps(
             activity!!,
-            object : PlaytimeShowDetailsListener {
+            object : io.adjoe.sdk.studio.PlaytimeDeeplinkListener {
                 override fun onError(error: PlaytimeResponseError?) {
                     callback(Result.failure(
                         ErrorsUtil.getFunctionError("showInstalledApps", error?.error?.message)
@@ -228,15 +227,11 @@ class PlaytimeStudioImpl() : PlaytimeStudio {
                 }
             }
         )
-        */
     }
 
     override fun showAppDetails(campaign: PlaytimeCampaign, callback: (Result<Unit>) -> Unit) {
-        // TODO: Uncomment this when this function is in native library
-        callback(Result.success(Unit))
-        /*
         val playtimeCampaign = playtimeCampaignsCache[campaign.campaignUUID]
-        
+
         if (playtimeCampaign == null) {
             return callback(Result.failure(
                 ErrorsUtil.getFunctionError("openInStore", "campaign is null")
@@ -250,10 +245,10 @@ class PlaytimeStudioImpl() : PlaytimeStudio {
         io.adjoe.sdk.studio.PlaytimeStudio.showAppDetails(
             activity!!,
             playtimeCampaign,
-            object : PlaytimeShowDetailsListener {
+            object : io.adjoe.sdk.studio.PlaytimeDeeplinkListener {
                 override fun onError(error: PlaytimeResponseError?) {
                     callback(Result.failure(
-                        ErrorsUtil.getFunctionError("showInstalledApps", error?.error?.message)
+                        ErrorsUtil.getFunctionError("showAppDetails", error?.error?.message)
                     ))
                 }
 
@@ -262,13 +257,9 @@ class PlaytimeStudioImpl() : PlaytimeStudio {
                 }
             }
         )
-        */
     }
 
     override fun showAppDetailsWithToken(token: String, campaignAppId: String, callback: (Result<Unit>) -> Unit) {
-        // TODO: Uncomment this when this function is in native library
-        callback(Result.success(Unit))
-        /*
         if (activity == null) {
             return callback(Result.failure(ErrorsUtil.getActivityIsNullError()))
         }
@@ -277,10 +268,10 @@ class PlaytimeStudioImpl() : PlaytimeStudio {
             activity!!,
             token,
             campaignAppId,
-            object : PlaytimeShowDetailsListener {
+            object : io.adjoe.sdk.studio.PlaytimeDeeplinkListener {
                 override fun onError(error: PlaytimeResponseError?) {
                     callback(Result.failure(
-                        ErrorsUtil.getFunctionError("showInstalledApps", error?.error?.message)
+                        ErrorsUtil.getFunctionError("showInstalledAppshowAppDetailsWithToken", error?.error?.message)
                     ))
                 }
 
@@ -289,14 +280,10 @@ class PlaytimeStudioImpl() : PlaytimeStudio {
                 }
             }
         )
-        */
     }
 
     override fun openChatbot(campaign: PlaytimeCampaign?, callback: (Result<Unit>) -> Unit) {
-        // TODO: Uncomment this when this function is in native library
-        callback(Result.success(Unit))
-        /*
-        val playtimeCampaign = playtimeCampaignsCache[campaign.campaignUUID]
+        val playtimeCampaign = playtimeCampaignsCache[campaign?.campaignUUID]
 
         if (activity == null) {
             return callback(Result.failure(ErrorsUtil.getActivityIsNullError()))
@@ -305,7 +292,7 @@ class PlaytimeStudioImpl() : PlaytimeStudio {
         io.adjoe.sdk.studio.PlaytimeStudio.openChatbot(
             activity!!,
             playtimeCampaign,
-            object : PlaytimeOpenChatbotListener {
+            object : io.adjoe.sdk.studio.PlaytimeDeeplinkListener {
                 override fun onError(error: PlaytimeResponseError?) {
                     callback(Result.failure(
                         ErrorsUtil.getFunctionError("openChatbot", error?.error?.message)
@@ -317,7 +304,52 @@ class PlaytimeStudioImpl() : PlaytimeStudio {
                 }
             }
         )
-        */
+    }
+
+    override fun executeEngagement(campaign: PlaytimeCampaign, engagementType: String, callback: (Result<Unit>) -> Unit) {
+        val playtimeCampaign = playtimeCampaignsCache[campaign.campaignUUID]
+
+        if (playtimeCampaign == null) {
+            return callback(Result.failure(
+                ErrorsUtil.getFunctionError("executeEngagement", "campaign is null")
+            ))
+        }
+
+        var playtimeEngagmentType: PlaytimeEngagementType = PlaytimeEngagementType.DEFAULT
+
+        if (engagementType.equals("engaged")) {
+            playtimeEngagmentType = io.adjoe.sdk.studio.PlaytimeEngagementType.ENGAGED
+        }
+
+        io.adjoe.sdk.studio.PlaytimeStudio.executeEngagement(
+            activity!!,
+            playtimeCampaign,
+            playtimeEngagmentType,
+            object : PlaytimeExecuteEngagementListener {
+                public override fun onFinished() {
+                    callback(Result.success(Unit))
+                }
+
+                public override fun onError(error: PlaytimeResponseError?) {
+                    if (error == null) {
+                        callback(Result.failure(
+                            ErrorsUtil.getFunctionError("executeEngagement", "Unknown error occurred")
+                        ))
+                        return
+                    }
+
+                    callback(Result.failure(
+                        ErrorsUtil.getFunctionError("executeEngagement", error?.error?.message)
+                    ))
+                }
+
+                public override fun onAlreadyEngaging() {
+                    callback(Result.failure(
+                        ErrorsUtil.getFunctionError("executeEngagement", "Request is already in progress")
+                    ))
+                }
+            }
+        )
     }
 
     private fun createPermissionsListener(

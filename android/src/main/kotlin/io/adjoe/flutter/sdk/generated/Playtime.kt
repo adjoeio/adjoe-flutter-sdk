@@ -140,19 +140,34 @@ data class PlaytimeOptions (
  */
 data class PlaytimeStatusDetails (
   /** A flag indicating if the current user is marked as a fraud user. */
-  val isFraud: Boolean
+  val isFraud: Boolean,
+  /** Indicates whether the user is eligible to request campaigns. */
+  val campaignsAvailable: Boolean,
+  /**
+   * Provides optional context explaining the eligibility state.
+   * This list captures the current environment or account constraints, such as:
+   * * `READY`: Fully eligible.
+   * * `BLOCKED`: No campaigns available.
+   * * `VPN_DETECTED`: Campaigns conditionally blocked.
+   * * `GEO_MISMATCH`: No available campaigns for user region.
+   */
+  val campaignsState: List<String?>
 
 ) {
   companion object {
     @Suppress("UNCHECKED_CAST")
     fun fromList(list: List<Any?>): PlaytimeStatusDetails {
       val isFraud = list[0] as Boolean
-      return PlaytimeStatusDetails(isFraud)
+      val campaignsAvailable = list[1] as Boolean
+      val campaignsState = list[2] as List<String?>
+      return PlaytimeStatusDetails(isFraud, campaignsAvailable, campaignsState)
     }
   }
   fun toList(): List<Any?> {
     return listOf<Any?>(
       isFraud,
+      campaignsAvailable,
+      campaignsState,
     )
   }
 }
@@ -440,6 +455,21 @@ data class PlaytimeEventConfig (
   /** Maximum possible coins for this config. */
   val totalCoinsPossible: Long? = null,
   /**
+   * The amount of time in seconds to the next level.
+   * Supported only on Android.
+   */
+  val secondsToNextLevel: Long? = null,
+  /** Maximum possible coins for this config if there was no promotion. */
+  val totalOriginalCoinsPossible: Long? = null,
+  /** Total amount of coins for all sequential events with promotion multiplier. */
+  val totalSequentialCoins: Long? = null,
+  /** Total amount of coins for all sequential events without promotion multiplier. */
+  val totalOriginalSequentialCoins: Long? = null,
+  /** Total amount of coins for all bonus events with promotion multiplier. */
+  val totalBonusCoins: Long? = null,
+  /** Total amount of coins for all bonus events without promotion multiplier. */
+  val totalOriginalBonusCoins: Long? = null,
+  /**
    * Cashback reward configuration for in-app purchases. A missing value means that the feature
    * is not supported for the campaign or the SDK.
    */
@@ -456,11 +486,17 @@ data class PlaytimeEventConfig (
       val timeBasedActions = list[2] as List<PlaytimeRewardAction?>
       val totalCoinsCollected = list[3].let { if (it is Int) it.toLong() else it as Long? }
       val totalCoinsPossible = list[4].let { if (it is Int) it.toLong() else it as Long? }
-      val cashbackReward: PlaytimeCashbackConfig? = (list[5] as List<Any?>?)?.let {
+      val secondsToNextLevel = list[5].let { if (it is Int) it.toLong() else it as Long? }
+      val totalOriginalCoinsPossible = list[6].let { if (it is Int) it.toLong() else it as Long? }
+      val totalSequentialCoins = list[7].let { if (it is Int) it.toLong() else it as Long? }
+      val totalOriginalSequentialCoins = list[8].let { if (it is Int) it.toLong() else it as Long? }
+      val totalBonusCoins = list[9].let { if (it is Int) it.toLong() else it as Long? }
+      val totalOriginalBonusCoins = list[10].let { if (it is Int) it.toLong() else it as Long? }
+      val cashbackReward: PlaytimeCashbackConfig? = (list[11] as List<Any?>?)?.let {
         PlaytimeCashbackConfig.fromList(it)
       }
-      val multipliersActions = list[6] as List<PlaytimeRewardActionMultiplier?>
-      return PlaytimeEventConfig(sequentialActions, bonusActions, timeBasedActions, totalCoinsCollected, totalCoinsPossible, cashbackReward, multipliersActions)
+      val multipliersActions = list[12] as List<PlaytimeRewardActionMultiplier?>
+      return PlaytimeEventConfig(sequentialActions, bonusActions, timeBasedActions, totalCoinsCollected, totalCoinsPossible, secondsToNextLevel, totalOriginalCoinsPossible, totalSequentialCoins, totalOriginalSequentialCoins, totalBonusCoins, totalOriginalBonusCoins, cashbackReward, multipliersActions)
     }
   }
   fun toList(): List<Any?> {
@@ -470,6 +506,12 @@ data class PlaytimeEventConfig (
       timeBasedActions,
       totalCoinsCollected,
       totalCoinsPossible,
+      secondsToNextLevel,
+      totalOriginalCoinsPossible,
+      totalSequentialCoins,
+      totalOriginalSequentialCoins,
+      totalBonusCoins,
+      totalOriginalBonusCoins,
       cashbackReward?.toList(),
       multipliersActions,
     )
@@ -1487,8 +1529,18 @@ interface PlaytimeStudio {
   /**
    * Use this method to forward the open chatbot
    * Supported for both android and iOS.
+   * @campaign The campaign you want to open
    */
   fun openChatbot(campaign: PlaytimeCampaign?, callback: (Result<Unit>) -> Unit)
+  /**
+   * Execute a engagement request for the given campaign.
+   * This method tracks view execution locally and ensures only one view tracking request
+   * is sent to the backend per campaign within a 30-minute window.
+   * Supported for both android and iOS.
+   * @campaign The campaign you want to open
+   * @engagementType The type of engagement you want to execute, values are "default" | "engaged".
+   */
+  fun executeEngagement(campaign: PlaytimeCampaign, engagementType: String, callback: (Result<Unit>) -> Unit)
 
   companion object {
     /** The codec used by PlaytimeStudio. */
@@ -1709,6 +1761,26 @@ interface PlaytimeStudio {
             val args = message as List<Any?>
             val campaignArg = args[0] as PlaytimeCampaign?
             api.openChatbot(campaignArg) { result: Result<Unit> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(wrapError(error))
+              } else {
+                reply.reply(wrapResult(null))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.PlaytimeStudio.executeEngagement", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val campaignArg = args[0] as PlaytimeCampaign
+            val engagementTypeArg = args[1] as String
+            api.executeEngagement(campaignArg, engagementTypeArg) { result: Result<Unit> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))

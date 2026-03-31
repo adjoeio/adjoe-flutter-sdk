@@ -4,8 +4,7 @@ class PlaytimeStudioImpl: PlaytimeStudio {
     func showInstalledApps(completion: @escaping (Result<Void, any Error>) -> Void) {
         Task {
             do {
-                // TODO: Uncomment this when this function is in native library
-                // try await PlaytimeMonetize.PlaytimeStudio.showInstalledApps()
+                try await PlaytimeMonetize.PlaytimeStudio.showInstalledApps()
                 completion(.success(()))
             } catch {
                 completion(.failure(error))
@@ -17,12 +16,9 @@ class PlaytimeStudioImpl: PlaytimeStudio {
         Task {
             do {
                 let jsonCampaign = try JSONUtil.convertCodableToJson(campaign)
-                // TODO: Uncomment this when this function is in native library
-                /*
                  try await PlaytimeMonetize.PlaytimeStudio.showAppDetails(
                      campaign: PlaytimeMonetize.PlaytimeCampaign(JSONObject: jsonCampaign)
                  )
-                 */
                 completion(.success(()))
             } catch {
                 completion(.failure(error))
@@ -33,13 +29,10 @@ class PlaytimeStudioImpl: PlaytimeStudio {
     func showAppDetailsWithToken(token: String, campaignAppId: String, completion: @escaping (Result<Void, any Error>) -> Void) {
         Task {
             do {
-                // TODO: Uncomment this when this function is in native library
-                /*
                  try await PlaytimeMonetize.PlaytimeStudio.showAppDetails(
                     campaignAppId: campaignAppId,
                     token: token
                  )
-                 */
                 completion(.success(()))
             } catch {
                 completion(.failure(error))
@@ -52,20 +45,13 @@ class PlaytimeStudioImpl: PlaytimeStudio {
             do {
                 if let campaign = campaign {
                     let jsonCampaign = try JSONUtil.convertCodableToJson(campaign)
-                    // TODO: Uncomment this when this function is in native library
-                    /*
                      try await PlaytimeMonetize.PlaytimeStudio.openChatbot(
-                        campaignAppId: campaignAppId,
-                        token: token
-                     )
-                     */
+                        campaign: PlaytimeMonetize.PlaytimeCampaign(JSONObject: jsonCampaign)
+                        )
                 } else {
-                    // TODO: Uncomment this when this function is in native library
-                    /*
                     try await PlaytimeMonetize.PlaytimeStudio.openChatbot(
                         campaign: nil,
                     )
-                    */
                 }
                 completion(.success(()))
             } catch {
@@ -227,7 +213,33 @@ class PlaytimeStudioImpl: PlaytimeStudio {
             }
         }
     }
-    
+
+    func executeEngagement(
+        campaign: PlaytimeCampaign,
+        engagementType: String,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
+        Task {
+            do {
+                let jsonCampaign = try JSONUtil.convertCodableToJson(campaign)
+                var playtimeEngagementType: PlaytimeMonetize.PlaytimeEngagementType = .default
+                
+                if engagementType == "engaged" {
+                    playtimeEngagementType = .engaged
+                }
+
+                 try await PlaytimeMonetize.PlaytimeStudio.executeEngagement(
+                    for: PlaytimeMonetize.PlaytimeCampaign(JSONObject: jsonCampaign),
+                    engagementType: playtimeEngagementType
+                 )
+
+                completion(.success(()))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
+
     private func filterTokens(_ tokens: [String?]) -> [String] {
         tokens.filter { $0 != nil }.compactMap { $0 }
     }
