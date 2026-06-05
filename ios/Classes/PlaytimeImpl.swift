@@ -90,33 +90,46 @@ class PlaytimeImpl: Playtime {
         Task {
             do {
                 let statusResponse = try await PlaytimeMonetize.Playtime.getStatus()
-                completion(.success(mapStatus(statusResponse)))
+                var testGroup: Int64? = nil
+                
+                if let statusResponseTestGroup = statusResponse.details?.testGroup {
+                    testGroup = Int64(statusResponseTestGroup)
+                }
+
+                let details = PlaytimeStatusDetails(
+                    isFraud: statusResponse.details?.isFraud ?? false,
+                    campaignsAvailable: statusResponse.details?.campaignsAvailable ?? false,
+                    campaignsState: statusResponse.details?.campaignsState.map { state in
+                        switch state {
+                        case .blocked:
+                            return "BLOCKED"
+                        case .vpn:
+                            return "VPN_DETECTED"
+                        case .geoMismatch:
+                            return "GEO_MISMATCH"
+                        default:
+                            return "READY"
+                        }
+                    } ?? [],
+                    testGroup: testGroup,
+                )
+
+                let status = PlaytimeStatus(isInitialized: statusResponse.isInitialized, details: details)
+
+                completion(.success(status))
             } catch {
                 completion(.failure(error))
             }
         }
     }
-    
-    private func mapStatus(_ status: PlaytimeMonetize.PlaytimeStatus) -> PlaytimeStatus {
-        let details = PlaytimeStatusDetails(
-            isFraud: status.details.isFraud,
-            campaignsAvailable: status.details.campaignsAvailable,
-            campaignsState: mapCampaignsState(status.details.campaignsState)
-        )
-        return PlaytimeStatus(isInitialized: status.isInitialized, details: details)
-    }
-    
-    private func mapCampaignsState(_ states: [PlaytimeMonetize.PlaytimeCampaignsState]) -> [String?] {
-        return states.map { state in
-            switch state {
-            case .blocked:
-                return "BLOCKED"
-            case .vpn:
-                return "VPN_DETECTED"
-            case .geoMismatch:
-                return "GEO_MISMATCH"
-            default:
-                return "READY"
+
+    func teardown(completion: @escaping (Result<Void, Error>) -> Void) {
+        Task {
+            do {
+                try await PlaytimeMonetize.Playtime.teardown()
+                completion(.success(()))
+            } catch {
+                completion(.failure(error))
             }
         }
     }

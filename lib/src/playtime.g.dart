@@ -127,6 +127,7 @@ class PlaytimeStatusDetails {
     required this.isFraud,
     required this.campaignsAvailable,
     required this.campaignsState,
+    this.testGroup,
   });
 
   /// A flag indicating if the current user is marked as a fraud user.
@@ -143,11 +144,15 @@ class PlaytimeStatusDetails {
   /// * `GEO_MISMATCH`: No available campaigns for user region.
   List<String?> campaignsState;
 
+  /// The test group assigned to the user by the backend, if any.
+  int? testGroup;
+
   Object encode() {
     return <Object?>[
       isFraud,
       campaignsAvailable,
       campaignsState,
+      testGroup,
     ];
   }
 
@@ -157,6 +162,7 @@ class PlaytimeStatusDetails {
       isFraud: result[0]! as bool,
       campaignsAvailable: result[1]! as bool,
       campaignsState: (result[2] as List<Object?>?)!.cast<String?>(),
+      testGroup: result[3] as int?,
     );
   }
 }
@@ -473,6 +479,7 @@ class PlaytimeEventConfig {
     required this.sequentialActions,
     required this.bonusActions,
     required this.timeBasedActions,
+    required this.cpaActions,
     this.totalCoinsCollected,
     this.totalCoinsPossible,
     this.secondsToNextLevel,
@@ -495,6 +502,9 @@ class PlaytimeEventConfig {
 
   /// Array of events that are rewarded based on the time played.
   List<PlaytimeRewardAction?> timeBasedActions;
+
+  /// Array of CPA (Cost Per Action) events that reward the user for completing specific in-app actions.
+  List<PlaytimeRewardAction?> cpaActions;
 
   /// Total coins collected by the user.
   int? totalCoinsCollected;
@@ -533,6 +543,7 @@ class PlaytimeEventConfig {
       sequentialActions,
       bonusActions,
       timeBasedActions,
+      cpaActions,
       totalCoinsCollected,
       totalCoinsPossible,
       secondsToNextLevel,
@@ -552,18 +563,19 @@ class PlaytimeEventConfig {
       sequentialActions: (result[0] as List<Object?>?)!.cast<PlaytimeRewardAction?>(),
       bonusActions: (result[1] as List<Object?>?)!.cast<PlaytimeRewardAction?>(),
       timeBasedActions: (result[2] as List<Object?>?)!.cast<PlaytimeRewardAction?>(),
-      totalCoinsCollected: result[3] as int?,
-      totalCoinsPossible: result[4] as int?,
-      secondsToNextLevel: result[5] as int?,
-      totalOriginalCoinsPossible: result[6] as int?,
-      totalSequentialCoins: result[7] as int?,
-      totalOriginalSequentialCoins: result[8] as int?,
-      totalBonusCoins: result[9] as int?,
-      totalOriginalBonusCoins: result[10] as int?,
-      cashbackReward: result[11] != null
-          ? PlaytimeCashbackConfig.decode(result[11]! as List<Object?>)
+      cpaActions: (result[3] as List<Object?>?)!.cast<PlaytimeRewardAction?>(),
+      totalCoinsCollected: result[4] as int?,
+      totalCoinsPossible: result[5] as int?,
+      secondsToNextLevel: result[6] as int?,
+      totalOriginalCoinsPossible: result[7] as int?,
+      totalSequentialCoins: result[8] as int?,
+      totalOriginalSequentialCoins: result[9] as int?,
+      totalBonusCoins: result[10] as int?,
+      totalOriginalBonusCoins: result[11] as int?,
+      cashbackReward: result[12] != null
+          ? PlaytimeCashbackConfig.decode(result[12]! as List<Object?>)
           : null,
-      multipliersActions: (result[12] as List<Object?>?)!.cast<PlaytimeRewardActionMultiplier?>(),
+      multipliersActions: (result[13] as List<Object?>?)!.cast<PlaytimeRewardActionMultiplier?>(),
     );
   }
 }
@@ -774,6 +786,9 @@ class PlaytimeCampaign {
     this.promotion,
     this.eventConfig,
     this.isCompleted,
+    this.status,
+    required this.isCpa,
+    required this.cpa,
   });
 
   /// Campaign UUID
@@ -843,6 +858,15 @@ class PlaytimeCampaign {
   /// Flag indicating whether all rewards have been collected.
   bool? isCompleted;
 
+  /// Current status of the campaign.
+  String? status;
+
+  /// Flag indicating whether CPA is enabled.
+  bool isCpa;
+
+  /// CPA of the campaign.
+  double cpa;
+
   Object encode() {
     return <Object?>[
       campaignUUID,
@@ -866,6 +890,9 @@ class PlaytimeCampaign {
       promotion?.encode(),
       eventConfig?.encode(),
       isCompleted,
+      status,
+      isCpa,
+      cpa,
     ];
   }
 
@@ -901,6 +928,9 @@ class PlaytimeCampaign {
           ? PlaytimeEventConfig.decode(result[19]! as List<Object?>)
           : null,
       isCompleted: result[20] as bool?,
+      status: result[21] as String?,
+      isCpa: result[22]! as bool,
+      cpa: result[23]! as double,
     );
   }
 }
@@ -1394,6 +1424,29 @@ class Playtime {
       );
     } else {
       return (__pigeon_replyList[0] as PlaytimeStatus?)!;
+    }
+  }
+
+  /// Deinitialize the SDK. This releases the resources taken up by internal components.
+  Future<void> teardown() async {
+    const String __pigeon_channelName = 'dev.flutter.pigeon.adjoe.Playtime.teardown';
+    final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
+      __pigeon_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: __pigeon_binaryMessenger,
+    );
+    final List<Object?>? __pigeon_replyList =
+        await __pigeon_channel.send(null) as List<Object?>?;
+    if (__pigeon_replyList == null) {
+      throw _createConnectionError(__pigeon_channelName);
+    } else if (__pigeon_replyList.length > 1) {
+      throw PlatformException(
+        code: __pigeon_replyList[0]! as String,
+        message: __pigeon_replyList[1] as String?,
+        details: __pigeon_replyList[2],
+      );
+    } else {
+      return;
     }
   }
 }

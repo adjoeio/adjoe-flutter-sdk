@@ -150,16 +150,20 @@ struct PlaytimeStatusDetails: Codable {
   /// * `VPN_DETECTED`: Campaigns conditionally blocked.
   /// * `GEO_MISMATCH`: No available campaigns for user region.
   var campaignsState: [String?]
+  /// The test group assigned to the user by the backend, if any.
+  var testGroup: Int64? = nil
 
   static func fromList(_ list: [Any?]) -> PlaytimeStatusDetails? {
     let isFraud = list[0] as! Bool
     let campaignsAvailable = list[1] as! Bool
     let campaignsState = list[2] as! [String?]
+    let testGroup: Int64? = isNullish(list[3]) ? nil : (list[3] is Int64? ? list[3] as! Int64? : Int64(list[3] as! Int32))
 
     return PlaytimeStatusDetails(
       isFraud: isFraud,
       campaignsAvailable: campaignsAvailable,
-      campaignsState: campaignsState
+      campaignsState: campaignsState,
+      testGroup: testGroup
     )
   }
   func toList() -> [Any?] {
@@ -167,6 +171,7 @@ struct PlaytimeStatusDetails: Codable {
       isFraud,
       campaignsAvailable,
       campaignsState,
+      testGroup,
     ]
   }
 }
@@ -450,6 +455,8 @@ struct PlaytimeEventConfig: Codable {
   var bonusActions: [PlaytimeRewardAction?]
   /// Array of events that are rewarded based on the time played.
   var timeBasedActions: [PlaytimeRewardAction?]
+  /// Array of CPA (Cost Per Action) events that reward the user for completing specific in-app actions.
+  var cpaActions: [PlaytimeRewardAction?]
   /// Total coins collected by the user.
   var totalCoinsCollected: Int64? = nil
   /// Maximum possible coins for this config.
@@ -477,24 +484,26 @@ struct PlaytimeEventConfig: Codable {
     let sequentialActions = list[0] as! [PlaytimeRewardAction?]
     let bonusActions = list[1] as! [PlaytimeRewardAction?]
     let timeBasedActions = list[2] as! [PlaytimeRewardAction?]
-    let totalCoinsCollected: Int64? = isNullish(list[3]) ? nil : (list[3] is Int64? ? list[3] as! Int64? : Int64(list[3] as! Int32))
-    let totalCoinsPossible: Int64? = isNullish(list[4]) ? nil : (list[4] is Int64? ? list[4] as! Int64? : Int64(list[4] as! Int32))
-    let secondsToNextLevel: Int64? = isNullish(list[5]) ? nil : (list[5] is Int64? ? list[5] as! Int64? : Int64(list[5] as! Int32))
-    let totalOriginalCoinsPossible: Int64? = isNullish(list[6]) ? nil : (list[6] is Int64? ? list[6] as! Int64? : Int64(list[6] as! Int32))
-    let totalSequentialCoins: Int64? = isNullish(list[7]) ? nil : (list[7] is Int64? ? list[7] as! Int64? : Int64(list[7] as! Int32))
-    let totalOriginalSequentialCoins: Int64? = isNullish(list[8]) ? nil : (list[8] is Int64? ? list[8] as! Int64? : Int64(list[8] as! Int32))
-    let totalBonusCoins: Int64? = isNullish(list[9]) ? nil : (list[9] is Int64? ? list[9] as! Int64? : Int64(list[9] as! Int32))
-    let totalOriginalBonusCoins: Int64? = isNullish(list[10]) ? nil : (list[10] is Int64? ? list[10] as! Int64? : Int64(list[10] as! Int32))
+    let cpaActions = list[3] as! [PlaytimeRewardAction?]
+    let totalCoinsCollected: Int64? = isNullish(list[4]) ? nil : (list[4] is Int64? ? list[4] as! Int64? : Int64(list[4] as! Int32))
+    let totalCoinsPossible: Int64? = isNullish(list[5]) ? nil : (list[5] is Int64? ? list[5] as! Int64? : Int64(list[5] as! Int32))
+    let secondsToNextLevel: Int64? = isNullish(list[6]) ? nil : (list[6] is Int64? ? list[6] as! Int64? : Int64(list[6] as! Int32))
+    let totalOriginalCoinsPossible: Int64? = isNullish(list[7]) ? nil : (list[7] is Int64? ? list[7] as! Int64? : Int64(list[7] as! Int32))
+    let totalSequentialCoins: Int64? = isNullish(list[8]) ? nil : (list[8] is Int64? ? list[8] as! Int64? : Int64(list[8] as! Int32))
+    let totalOriginalSequentialCoins: Int64? = isNullish(list[9]) ? nil : (list[9] is Int64? ? list[9] as! Int64? : Int64(list[9] as! Int32))
+    let totalBonusCoins: Int64? = isNullish(list[10]) ? nil : (list[10] is Int64? ? list[10] as! Int64? : Int64(list[10] as! Int32))
+    let totalOriginalBonusCoins: Int64? = isNullish(list[11]) ? nil : (list[11] is Int64? ? list[11] as! Int64? : Int64(list[11] as! Int32))
     var cashbackReward: PlaytimeCashbackConfig? = nil
-    if let cashbackRewardList: [Any?] = nilOrValue(list[11]) {
+    if let cashbackRewardList: [Any?] = nilOrValue(list[12]) {
       cashbackReward = PlaytimeCashbackConfig.fromList(cashbackRewardList)
     }
-    let multipliersActions = list[12] as! [PlaytimeRewardActionMultiplier?]
+    let multipliersActions = list[13] as! [PlaytimeRewardActionMultiplier?]
 
     return PlaytimeEventConfig(
       sequentialActions: sequentialActions,
       bonusActions: bonusActions,
       timeBasedActions: timeBasedActions,
+      cpaActions: cpaActions,
       totalCoinsCollected: totalCoinsCollected,
       totalCoinsPossible: totalCoinsPossible,
       secondsToNextLevel: secondsToNextLevel,
@@ -512,6 +521,7 @@ struct PlaytimeEventConfig: Codable {
       sequentialActions,
       bonusActions,
       timeBasedActions,
+      cpaActions,
       totalCoinsCollected,
       totalCoinsPossible,
       secondsToNextLevel,
@@ -739,6 +749,12 @@ struct PlaytimeCampaign: Codable {
   var eventConfig: PlaytimeEventConfig? = nil
   /// Flag indicating whether all rewards have been collected.
   var isCompleted: Bool? = nil
+  /// Current status of the campaign.
+  var status: String? = nil
+  /// Flag indicating whether CPA is enabled.
+  var isCpa: Bool
+  /// CPA of the campaign.
+  var cpa: Double
 
   static func fromList(_ list: [Any?]) -> PlaytimeCampaign? {
     let campaignUUID: String? = nilOrValue(list[0])
@@ -774,6 +790,9 @@ struct PlaytimeCampaign: Codable {
       eventConfig = PlaytimeEventConfig.fromList(eventConfigList)
     }
     let isCompleted: Bool? = nilOrValue(list[20])
+    let status: String? = nilOrValue(list[21])
+    let isCpa = list[22] as! Bool
+    let cpa = list[23] as! Double
 
     return PlaytimeCampaign(
       campaignUUID: campaignUUID,
@@ -796,7 +815,10 @@ struct PlaytimeCampaign: Codable {
       video: video,
       promotion: promotion,
       eventConfig: eventConfig,
-      isCompleted: isCompleted
+      isCompleted: isCompleted,
+      status: status,
+      isCpa: isCpa,
+      cpa: cpa
     )
   }
   func toList() -> [Any?] {
@@ -822,6 +844,9 @@ struct PlaytimeCampaign: Codable {
       promotion?.toList(),
       eventConfig?.toList(),
       isCompleted,
+      status,
+      isCpa,
+      cpa,
     ]
   }
 }
@@ -1009,6 +1034,8 @@ protocol Playtime {
   /// Recieve the status of SDK.
   /// Supported on Android and iOS.
   func getStatus(completion: @escaping (Result<PlaytimeStatus, Error>) -> Void)
+  /// Deinitialize the SDK. This releases the resources taken up by internal components.
+  func teardown(completion: @escaping (Result<Void, Error>) -> Void)
 }
 
 /// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
@@ -1233,6 +1260,22 @@ class PlaytimeSetup {
       }
     } else {
       getStatusChannel.setMessageHandler(nil)
+    }
+    /// Deinitialize the SDK. This releases the resources taken up by internal components.
+    let teardownChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.adjoe.Playtime.teardown", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      teardownChannel.setMessageHandler { _, reply in
+        api.teardown { result in
+          switch result {
+          case .success:
+            reply(wrapResult(nil))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      teardownChannel.setMessageHandler(nil)
     }
   }
 }

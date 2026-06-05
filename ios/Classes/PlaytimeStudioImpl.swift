@@ -15,7 +15,8 @@ class PlaytimeStudioImpl: PlaytimeStudio {
     func showAppDetails(campaign: PlaytimeCampaign, completion: @escaping (Result<Void, any Error>) -> Void) {
         Task {
             do {
-                let jsonCampaign = try JSONUtil.convertCodableToJson(campaign)
+                var jsonCampaign = try JSONUtil.convertCodableToJson(campaign)
+                jsonCampaign = convertCampaignStatusToInt(in: jsonCampaign)
                  try await PlaytimeMonetize.PlaytimeStudio.showAppDetails(
                      campaign: PlaytimeMonetize.PlaytimeCampaign(JSONObject: jsonCampaign)
                  )
@@ -44,7 +45,8 @@ class PlaytimeStudioImpl: PlaytimeStudio {
         Task {
             do {
                 if let campaign = campaign {
-                    let jsonCampaign = try JSONUtil.convertCodableToJson(campaign)
+                    var jsonCampaign = try JSONUtil.convertCodableToJson(campaign)
+                    jsonCampaign = convertCampaignStatusToInt(in: jsonCampaign)
                      try await PlaytimeMonetize.PlaytimeStudio.openChatbot(
                         campaign: PlaytimeMonetize.PlaytimeCampaign(JSONObject: jsonCampaign)
                         )
@@ -80,8 +82,11 @@ class PlaytimeStudioImpl: PlaytimeStudio {
                     )
                 }
                 
+                var jsonObject = campaignsResponse.toJSONObject()
+                jsonObject = mapCampaignStatusFields(in: jsonObject)
+                
                 let campaignsResponseData = try JSONSerialization.data(
-                    withJSONObject: campaignsResponse.toJSONObject()
+                    withJSONObject: jsonObject
                 )
                 
                 completion(.success(try JSONUtil.decoder.decode(
@@ -103,8 +108,12 @@ class PlaytimeStudioImpl: PlaytimeStudio {
                 let campaignsResponse = try await PlaytimeMonetize.PlaytimeStudio.getInstalledCampaigns(
                     options: PlaytimeMonetize.PlaytimeOptions(JSONObject: jsonOptions)
                 )
+                
+                var jsonObject = campaignsResponse.toJSONObject()
+                jsonObject = mapCampaignStatusFields(in: jsonObject)
+                
                 let campaignsResponseData = try JSONSerialization.data(
-                    withJSONObject: campaignsResponse.toJSONObject()
+                    withJSONObject: jsonObject
                 )
                 
                 completion(.success(try JSONUtil.decoder.decode(
@@ -122,7 +131,8 @@ class PlaytimeStudioImpl: PlaytimeStudio {
     ) {
         Task {
             do {
-                let jsonCampaign = try JSONUtil.convertCodableToJson(campaign)
+                var jsonCampaign = try JSONUtil.convertCodableToJson(campaign)
+                jsonCampaign = convertCampaignStatusToInt(in: jsonCampaign)
                 try await PlaytimeMonetize.PlaytimeStudio.openInStore(
                     campaign: PlaytimeMonetize.PlaytimeCampaign(JSONObject: jsonCampaign)
                 )
@@ -139,7 +149,8 @@ class PlaytimeStudioImpl: PlaytimeStudio {
     ) {
         Task {
             do {
-                let jsonCampaign = try JSONUtil.convertCodableToJson(campaign)
+                var jsonCampaign = try JSONUtil.convertCodableToJson(campaign)
+                jsonCampaign = convertCampaignStatusToInt(in: jsonCampaign)
                 try await PlaytimeMonetize.PlaytimeStudio.openInstalledCampaign(
                     campaign: PlaytimeMonetize.PlaytimeCampaign(JSONObject: jsonCampaign)
                 )
@@ -221,7 +232,8 @@ class PlaytimeStudioImpl: PlaytimeStudio {
     ) {
         Task {
             do {
-                let jsonCampaign = try JSONUtil.convertCodableToJson(campaign)
+                var jsonCampaign = try JSONUtil.convertCodableToJson(campaign)
+                jsonCampaign = convertCampaignStatusToInt(in: jsonCampaign)
                 var playtimeEngagementType: PlaytimeMonetize.PlaytimeEngagementType = .default
                 
                 if engagementType == "engaged" {
@@ -242,5 +254,46 @@ class PlaytimeStudioImpl: PlaytimeStudio {
 
     private func filterTokens(_ tokens: [String?]) -> [String] {
         tokens.filter { $0 != nil }.compactMap { $0 }
+    }
+    
+    private func convertCampaignStatusToInt(in jsonCampaign: [String: Any]?) -> [String: Any]? {
+        guard var json = jsonCampaign else { return jsonCampaign }
+        if let statusString = json["status"] as? String {
+            json["status"] = mapPlaytimeStatusToInt(statusString)
+        }
+        return json
+    }
+    
+    private func mapPlaytimeStatusToInt(_ status: String) -> Int {
+        switch status {
+        case "AVAILABLE": return 0
+        case "PENDING": return 1
+        case "INSTALLED": return 2
+        case "FAILED": return 3
+        default: return 0
+        }
+    }
+    
+    private func mapCampaignStatusFields(in jsonObject: [String: Any]) -> [String: Any] {
+        var result = jsonObject
+        if var campaigns = result["campaigns"] as? [[String: Any]] {
+            for i in campaigns.indices {
+                if let statusInt = campaigns[i]["status"] as? Int {
+                    campaigns[i]["status"] = mapPlaytimeStatus(statusInt)
+                }
+            }
+            result["campaigns"] = campaigns
+        }
+        return result
+    }
+    
+    private func mapPlaytimeStatus(_ status: Int) -> String {
+        switch status {
+        case 0: return "AVAILABLE"
+        case 1: return "PENDING"
+        case 2: return "INSTALLED"
+        case 3: return "FAILED"
+        default: return "AVAILABLE"
+        }
     }
 }

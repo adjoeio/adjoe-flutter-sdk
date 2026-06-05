@@ -151,7 +151,9 @@ data class PlaytimeStatusDetails (
    * * `VPN_DETECTED`: Campaigns conditionally blocked.
    * * `GEO_MISMATCH`: No available campaigns for user region.
    */
-  val campaignsState: List<String?>
+  val campaignsState: List<String?>,
+  /** The test group assigned to the user by the backend, if any. */
+  val testGroup: Long? = null
 
 ) {
   companion object {
@@ -160,7 +162,8 @@ data class PlaytimeStatusDetails (
       val isFraud = list[0] as Boolean
       val campaignsAvailable = list[1] as Boolean
       val campaignsState = list[2] as List<String?>
-      return PlaytimeStatusDetails(isFraud, campaignsAvailable, campaignsState)
+      val testGroup = list[3].let { if (it is Int) it.toLong() else it as Long? }
+      return PlaytimeStatusDetails(isFraud, campaignsAvailable, campaignsState, testGroup)
     }
   }
   fun toList(): List<Any?> {
@@ -168,6 +171,7 @@ data class PlaytimeStatusDetails (
       isFraud,
       campaignsAvailable,
       campaignsState,
+      testGroup,
     )
   }
 }
@@ -450,6 +454,8 @@ data class PlaytimeEventConfig (
   val bonusActions: List<PlaytimeRewardAction?>,
   /** Array of events that are rewarded based on the time played. */
   val timeBasedActions: List<PlaytimeRewardAction?>,
+  /** Array of CPA (Cost Per Action) events that reward the user for completing specific in-app actions. */
+  val cpaActions: List<PlaytimeRewardAction?>,
   /** Total coins collected by the user. */
   val totalCoinsCollected: Long? = null,
   /** Maximum possible coins for this config. */
@@ -484,19 +490,20 @@ data class PlaytimeEventConfig (
       val sequentialActions = list[0] as List<PlaytimeRewardAction?>
       val bonusActions = list[1] as List<PlaytimeRewardAction?>
       val timeBasedActions = list[2] as List<PlaytimeRewardAction?>
-      val totalCoinsCollected = list[3].let { if (it is Int) it.toLong() else it as Long? }
-      val totalCoinsPossible = list[4].let { if (it is Int) it.toLong() else it as Long? }
-      val secondsToNextLevel = list[5].let { if (it is Int) it.toLong() else it as Long? }
-      val totalOriginalCoinsPossible = list[6].let { if (it is Int) it.toLong() else it as Long? }
-      val totalSequentialCoins = list[7].let { if (it is Int) it.toLong() else it as Long? }
-      val totalOriginalSequentialCoins = list[8].let { if (it is Int) it.toLong() else it as Long? }
-      val totalBonusCoins = list[9].let { if (it is Int) it.toLong() else it as Long? }
-      val totalOriginalBonusCoins = list[10].let { if (it is Int) it.toLong() else it as Long? }
-      val cashbackReward: PlaytimeCashbackConfig? = (list[11] as List<Any?>?)?.let {
+      val cpaActions = list[3] as List<PlaytimeRewardAction?>
+      val totalCoinsCollected = list[4].let { if (it is Int) it.toLong() else it as Long? }
+      val totalCoinsPossible = list[5].let { if (it is Int) it.toLong() else it as Long? }
+      val secondsToNextLevel = list[6].let { if (it is Int) it.toLong() else it as Long? }
+      val totalOriginalCoinsPossible = list[7].let { if (it is Int) it.toLong() else it as Long? }
+      val totalSequentialCoins = list[8].let { if (it is Int) it.toLong() else it as Long? }
+      val totalOriginalSequentialCoins = list[9].let { if (it is Int) it.toLong() else it as Long? }
+      val totalBonusCoins = list[10].let { if (it is Int) it.toLong() else it as Long? }
+      val totalOriginalBonusCoins = list[11].let { if (it is Int) it.toLong() else it as Long? }
+      val cashbackReward: PlaytimeCashbackConfig? = (list[12] as List<Any?>?)?.let {
         PlaytimeCashbackConfig.fromList(it)
       }
-      val multipliersActions = list[12] as List<PlaytimeRewardActionMultiplier?>
-      return PlaytimeEventConfig(sequentialActions, bonusActions, timeBasedActions, totalCoinsCollected, totalCoinsPossible, secondsToNextLevel, totalOriginalCoinsPossible, totalSequentialCoins, totalOriginalSequentialCoins, totalBonusCoins, totalOriginalBonusCoins, cashbackReward, multipliersActions)
+      val multipliersActions = list[13] as List<PlaytimeRewardActionMultiplier?>
+      return PlaytimeEventConfig(sequentialActions, bonusActions, timeBasedActions, cpaActions, totalCoinsCollected, totalCoinsPossible, secondsToNextLevel, totalOriginalCoinsPossible, totalSequentialCoins, totalOriginalSequentialCoins, totalBonusCoins, totalOriginalBonusCoins, cashbackReward, multipliersActions)
     }
   }
   fun toList(): List<Any?> {
@@ -504,6 +511,7 @@ data class PlaytimeEventConfig (
       sequentialActions,
       bonusActions,
       timeBasedActions,
+      cpaActions,
       totalCoinsCollected,
       totalCoinsPossible,
       secondsToNextLevel,
@@ -737,7 +745,13 @@ data class PlaytimeCampaign (
   /** Event and rewards configuration. */
   val eventConfig: PlaytimeEventConfig? = null,
   /** Flag indicating whether all rewards have been collected. */
-  val isCompleted: Boolean? = null
+  val isCompleted: Boolean? = null,
+  /** Current status of the campaign. */
+  val status: String? = null,
+  /** Flag indicating whether CPA is enabled. */
+  val isCpa: Boolean,
+  /** CPA of the campaign. */
+  val cpa: Double
 
 ) {
   companion object {
@@ -772,7 +786,10 @@ data class PlaytimeCampaign (
         PlaytimeEventConfig.fromList(it)
       }
       val isCompleted = list[20] as Boolean?
-      return PlaytimeCampaign(campaignUUID, appName, appDescription, appID, appBundleID, appStoreID, installedAt, uninstalledAt, rewardingExpiresAfter, rewardingExpiresAt, campaignExpiresAt, appCategory, campaignType, featuredPosition, score, iconImage, image, video, promotion, eventConfig, isCompleted)
+      val status = list[21] as String?
+      val isCpa = list[22] as Boolean
+      val cpa = list[23] as Double
+      return PlaytimeCampaign(campaignUUID, appName, appDescription, appID, appBundleID, appStoreID, installedAt, uninstalledAt, rewardingExpiresAfter, rewardingExpiresAt, campaignExpiresAt, appCategory, campaignType, featuredPosition, score, iconImage, image, video, promotion, eventConfig, isCompleted, status, isCpa, cpa)
     }
   }
   fun toList(): List<Any?> {
@@ -798,6 +815,9 @@ data class PlaytimeCampaign (
       promotion?.toList(),
       eventConfig?.toList(),
       isCompleted,
+      status,
+      isCpa,
+      cpa,
     )
   }
 }
@@ -1041,6 +1061,8 @@ interface Playtime {
    * Supported on Android and iOS.
    */
   fun getStatus(callback: (Result<PlaytimeStatus>) -> Unit)
+  /** Deinitialize the SDK. This releases the resources taken up by internal components. */
+  fun teardown(callback: (Result<Unit>) -> Unit)
 
   companion object {
     /** The codec used by Playtime. */
@@ -1286,6 +1308,23 @@ interface Playtime {
               } else {
                 val data = result.getOrNull()
                 reply.reply(wrapResult(data))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.Playtime.teardown", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            api.teardown() { result: Result<Unit> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(wrapError(error))
+              } else {
+                reply.reply(wrapResult(null))
               }
             }
           }

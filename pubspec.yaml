@@ -1,6 +1,6 @@
 name: adjoe
 description: The official Flutter wrapper of the Playtime SDK.
-version: 4.3.1
+version: 4.4.0
 homepage: https://adjoe.io
 documentation: https://docs.adjoe.io
 
@@ -17,7 +17,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
-  pigeon: ^16.0.0
+  pigeon: ^26.0.0
 
 flutter:
   plugin:
