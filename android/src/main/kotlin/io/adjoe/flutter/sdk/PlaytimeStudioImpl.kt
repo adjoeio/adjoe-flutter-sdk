@@ -566,6 +566,42 @@ class PlaytimeStudioImpl() : PlaytimeStudio {
         )
     }
 
+    override fun executeEngagementWithToken(appID: String, token: String, callback: (Result<Unit>) -> Unit) {
+        val currentActivity = activity ?: run {
+            return callback(Result.failure(ErrorsUtil.getActivityIsNullError()))
+        }
+
+        io.adjoe.sdk.studio.PlaytimeStudio.executeEngagement(
+            currentActivity,
+            appID,
+            token,
+            object : PlaytimeExecuteEngagementListener {
+                public override fun onFinished() {
+                    callback(Result.success(Unit))
+                }
+
+                public override fun onError(error: PlaytimeResponseError?) {
+                    if (error == null) {
+                        callback(Result.failure(
+                            ErrorsUtil.getFunctionError("executeEngagementWithToken", "Unknown error occurred")
+                        ))
+                        return
+                    }
+
+                    callback(Result.failure(
+                        ErrorsUtil.getFunctionError("executeEngagementWithToken", error?.error?.message)
+                    ))
+                }
+
+                public override fun onAlreadyEngaging() {
+                    callback(Result.failure(
+                        ErrorsUtil.getFunctionError("executeEngagementWithToken", "Request is already in progress")
+                    ))
+                }
+            }
+        )
+    }
+
     private fun createPermissionsListener(
         functionName: String,
         callback: (Result<PlaytimePermissionsResponse>) -> Unit

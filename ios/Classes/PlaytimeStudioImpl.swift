@@ -164,20 +164,7 @@ class PlaytimeStudioImpl: PlaytimeStudio {
     func getPermissions(
         completion: @escaping (Result<PlaytimePermissionsResponse, any Error>) -> Void
     ) {
-        Task {
-            do {
-                let permissionsResponse = try await PlaytimeMonetize.PlaytimeStudio.getPermissions()
-                let permissionsResponseData = try JSONSerialization.data(
-                    withJSONObject: permissionsResponse.toJSONObject()
-                )
-                
-                completion(.success(try JSONUtil.decoder.decode(
-                    PlaytimePermissionsResponse.self, from: permissionsResponseData
-                )))
-            } catch {
-                completion(.failure(error))
-            }
-        }
+        completion(.failure(PlaytimeImplError.notImplemented("Function is not Supported")))
     }
     
     func showPermissionsPrompt(
@@ -294,6 +281,17 @@ class PlaytimeStudioImpl: PlaytimeStudio {
         case 2: return "INSTALLED"
         case 3: return "FAILED"
         default: return "AVAILABLE"
+        }
+    }
+
+    func executeEngagementWithToken(appID: String, token: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        Task {
+            do {
+                try await PlaytimeMonetize.PlaytimeStudio.executeEngagement(appID: appID, token: token)
+                completion(.success(()))
+            } catch {
+                completion(.failure(error))
+            }
         }
     }
 }
