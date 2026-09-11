@@ -1,3 +1,5 @@
+import Foundation
+
 struct JSONUtil {
     static let encoder = JSONEncoder()
     static let decoder = JSONDecoder()
