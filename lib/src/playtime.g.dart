@@ -97,7 +97,157 @@ int _deepHash(Object? value) {
 }
 
 
-/// This interface is used to pass additional identifiers of the user.
+/// Represents the gender of the user.
+enum PlaytimeGender {
+  /// Male gender.
+  MALE,
+  /// Female gender.
+  FEMALE,
+  /// Unknown gender.
+  UNKNOWN,
+}
+
+/// The model that represents the campaigns state for SDK
+enum PlaytimeCampaignsState {
+  /// Fully eligible
+  READY,
+  /// No campaigns available
+  BLOCKED,
+  /// Campaigns conditionally blocked
+  VPN_DETECTED,
+  /// No available campaigns for user region
+  GEO_MISMATCH,
+  /// The SDK is not initialized
+  NOT_INITIALIZED,
+}
+
+/// Represents the current status of a campaign.
+/// @basicnodoc
+enum PlaytimeCampaignStatus {
+  /// The campaign is available for installation.
+  AVAILABLE,
+  /// Waiting for the app installation.
+  PENDING,
+  /// The app associated with the campaign has been installed.
+  INSTALLED,
+  /// The campaign installation or processing has failed.
+  FAILED,
+}
+
+/// Impression type for Playtime interaction.
+/// @basicnodoc
+enum PlaytimeImpressionType {
+  /// The default interaction which should be invoked when the user sees the campaign view.
+  DEFAULT,
+  /// Engaged interaction which signifies that the user interacted with the campaign.
+  ENGAGED,
+}
+
+/// The consent action to apply when updating the user's Playtime terms of service consent.
+/// @basicnodoc
+enum TosConsentAction {
+  /// Accept the terms of service on behalf of the user.
+  ACCEPT,
+  /// Withdraw the user's previously granted consent to the terms of service.
+  WITHDRAW,
+}
+
+/// Represents the placement where the catalog will be shown.
+/// Use one of the predefined placements or create a custom placement via the custom case.
+///
+/// Use one of the predefined constants on `CatalogPlacement`, or
+/// `CatalogPlacement.custom()` for a publisher-supplied value.
+class CatalogPlacement {
+  CatalogPlacement({
+    required this.value,
+    this.isCustom,
+  });
+
+  /// The case's internal value (e.g. `earn_tab`), or a publisher-supplied custom string.
+  String value;
+
+  /// Whether [value] is a publisher-supplied custom value rather than a predefined case.
+  bool? isCustom;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      value,
+      isCustom,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static CatalogPlacement decode(Object result) {
+    result as List<Object?>;
+    return CatalogPlacement(
+      value: result[0]! as String,
+      isCustom: result[1] as bool?,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! CatalogPlacement || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(value, other.value) && _deepEquals(isCustom, other.isCustom);
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+}
+
+/// Represents the app category for campaign targeting.
+class AppCategory {
+  AppCategory({
+    required this.value,
+  });
+
+  /// The case's internal value: `gaming`, `non-gaming` or `both`.
+  String value;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      value,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static AppCategory decode(Object result) {
+    result as List<Object?>;
+    return AppCategory(
+      value: result[0]! as String,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! AppCategory || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(value, other.value);
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+}
+
+/// Adjoe Extension class holds additional optional subids to be used by publisher to pass different
+/// values
 class PlaytimeExtensions {
   PlaytimeExtensions({
     this.subId1,
@@ -163,71 +313,327 @@ class PlaytimeExtensions {
   int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
 }
 
-/// The options passed to Playtime methods.
-class PlaytimeOptions {
-  PlaytimeOptions({
+/// Use this class to pass additional options like the user ID to
+/// [io.adjoe.sdk.Playtime.initPlaytime].
+class InitOptions {
+  InitOptions({
+    required this.sdkHash,
     this.userId,
-    this.sdkHash,
-    this.tokens,
     this.userProfile,
-    this.params,
     this.extensions,
+    this.language,
+    this.uaNetwork,
+    this.uaChannel,
+    this.uaCampaignName,
+    this.country,
   });
+
+  /// The SDK hash used to initialize the SDK. Used for all subsequent requests.
+  String sdkHash;
 
   /// A custom identifier you must assign to each user.
   String? userId;
 
-  /// The SDK hash for initialization.
-  String? sdkHash;
-
-  /// A list of tokens.
-  List<String?>? tokens;
-
   /// User profile for targeting.
   PlaytimeUserProfile? userProfile;
-
-  /// User acquisition parameters.
-  PlaytimeParams? params;
 
   /// Extension IDs visible in S2S payouts.
   PlaytimeExtensions? extensions;
 
+  /// The language override for the SDK. When null, the device locale language is applied.
+  String? language;
+
+  /// User acquisition network where the user came from.
+  String? uaNetwork;
+
+  /// User acquisition channel where the user came from; e.g. video, offerwall.
+  String? uaChannel;
+
+  /// User acquisition campaign name. Sent to campaign distribution as the
+  /// UASubPublisherEncrypted query param.
+  String? uaCampaignName;
+
+  /// Only use this field if you use multiple types of cash currencies for rewarding (e.g, USD, EUR). Setting the country tells adjoe which currency to use for the user. Country can only be set once per user. Requires a valid ISO 3166-1 alpha-2 code (e.g., US).
+  String? country;
+
   List<Object?> _toList() {
     return <Object?>[
-      userId,
       sdkHash,
-      tokens,
+      userId,
       userProfile,
-      params,
       extensions,
+      language,
+      uaNetwork,
+      uaChannel,
+      uaCampaignName,
+      country,
     ];
   }
 
   Object encode() {
     return _toList();  }
 
-  static PlaytimeOptions decode(Object result) {
+  static InitOptions decode(Object result) {
     result as List<Object?>;
-    return PlaytimeOptions(
-      userId: result[0] as String?,
-      sdkHash: result[1] as String?,
-      tokens: (result[2] as List<Object?>?)?.cast<String?>(),
-      userProfile: result[3] as PlaytimeUserProfile?,
-      params: result[4] as PlaytimeParams?,
-      extensions: result[5] as PlaytimeExtensions?,
+    return InitOptions(
+      sdkHash: result[0]! as String,
+      userId: result[1] as String?,
+      userProfile: result[2] as PlaytimeUserProfile?,
+      extensions: result[3] as PlaytimeExtensions?,
+      language: result[4] as String?,
+      uaNetwork: result[5] as String?,
+      uaChannel: result[6] as String?,
+      uaCampaignName: result[7] as String?,
+      country: result[8] as String?,
     );
   }
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
   bool operator ==(Object other) {
-    if (other is! PlaytimeOptions || other.runtimeType != runtimeType) {
+    if (other is! InitOptions || other.runtimeType != runtimeType) {
       return false;
     }
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(userId, other.userId) && _deepEquals(sdkHash, other.sdkHash) && _deepEquals(tokens, other.tokens) && _deepEquals(userProfile, other.userProfile) && _deepEquals(params, other.params) && _deepEquals(extensions, other.extensions);
+    return _deepEquals(sdkHash, other.sdkHash) && _deepEquals(userId, other.userId) && _deepEquals(userProfile, other.userProfile) && _deepEquals(extensions, other.extensions) && _deepEquals(language, other.language) && _deepEquals(uaNetwork, other.uaNetwork) && _deepEquals(uaChannel, other.uaChannel) && _deepEquals(uaCampaignName, other.uaCampaignName) && _deepEquals(country, other.country);
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+}
+
+/// Options for the Playtime catalog request. Provides context (placement, category, promotion tag, and per-request UA context) to the backend for campaign targeting.
+class CatalogOptions {
+  CatalogOptions({
+    this.placement,
+    this.category,
+    this.promotionTag,
+    this.metadata,
+  });
+
+  /// The placement where the catalog will be shown.
+  CatalogPlacement? placement;
+
+  /// The app category filter. Defaults to GAMING.
+  AppCategory? category;
+
+  /// An optional promotion tag to trigger user-level promotions.
+  String? promotionTag;
+
+  /// Metadata visible in S2S payouts.
+  PlaytimeMetadata? metadata;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      placement,
+      category,
+      promotionTag,
+      metadata,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static CatalogOptions decode(Object result) {
+    result as List<Object?>;
+    return CatalogOptions(
+      placement: result[0] as CatalogPlacement?,
+      category: result[1] as AppCategory?,
+      promotionTag: result[2] as String?,
+      metadata: result[3] as PlaytimeMetadata?,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! CatalogOptions || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(placement, other.placement) && _deepEquals(category, other.category) && _deepEquals(promotionTag, other.promotionTag) && _deepEquals(metadata, other.metadata);
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+}
+
+class PlaytimeUserProfile {
+  PlaytimeUserProfile({
+    this.gender,
+    this.birthday,
+  });
+
+  /// User gender.
+  PlaytimeGender? gender;
+
+  /// The user's birthday, as an ISO 8601 string.
+  ///
+  /// Accepts a bare calendar date (`2002-12-02`), an instant (`2002-12-02T00:00:00Z`,
+  /// `2002-12-02T00:00:00.000Z`) or an explicit UTC offset
+  /// (`2002-12-02T00:00:00.000+01:00`). Parsed into a native date type on both platforms;
+  /// an unparseable value is treated as "no birthday" rather than an error.
+  String? birthday;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      gender,
+      birthday,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static PlaytimeUserProfile decode(Object result) {
+    result as List<Object?>;
+    return PlaytimeUserProfile(
+      gender: result[0] as PlaytimeGender?,
+      birthday: result[1] as String?,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! PlaytimeUserProfile || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(gender, other.gender) && _deepEquals(birthday, other.birthday);
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+}
+
+/// An SDK event shared with the publisher using the configured event map.
+class PlaytimeEvent {
+  PlaytimeEvent({
+    required this.name,
+    required this.occurredAt,
+  });
+
+  /// The publisher event name configured for the emitted SDK event.
+  String name;
+
+  /// The time at which the SDK delivered the event to the listener, as an ISO 8601 string.
+  String occurredAt;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      name,
+      occurredAt,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static PlaytimeEvent decode(Object result) {
+    result as List<Object?>;
+    return PlaytimeEvent(
+      name: result[0]! as String,
+      occurredAt: result[1]! as String,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! PlaytimeEvent || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(name, other.name) && _deepEquals(occurredAt, other.occurredAt);
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+}
+
+/// The model that represents the status for SDK
+class PlaytimeStatus {
+  PlaytimeStatus({
+    required this.version,
+    required this.isInitialized,
+    this.userId,
+    required this.isTosAccepted,
+    required this.details,
+    this.isUsagePermissionAccepted,
+  });
+
+  /// The Playtime SDK version. On wrappers this is exposed as a codegen constant to satisfy
+  /// the non-async bridge-layer rule.
+  String version;
+
+  /// A flag indicating if the SDK is successfully initialized.
+  bool isInitialized;
+
+  /// The unique ID of the user by which they are identified within the Playtime services.
+  String? userId;
+
+  /// A flag indicating whether the terms of service have been accepted.
+  bool isTosAccepted;
+
+  /// Additional information about the SDK status.
+  PlaytimeStatusDetails details;
+
+  /// A flag indicating whether the usage permission has been accepted.
+  ///
+  /// Provided on Android only. On iOS this is null, because the iOS SDK has no usage
+  /// permission concept and emits no value for it.
+  bool? isUsagePermissionAccepted;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      version,
+      isInitialized,
+      userId,
+      isTosAccepted,
+      details,
+      isUsagePermissionAccepted,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static PlaytimeStatus decode(Object result) {
+    result as List<Object?>;
+    return PlaytimeStatus(
+      version: result[0]! as String,
+      isInitialized: result[1]! as bool,
+      userId: result[2] as String?,
+      isTosAccepted: result[3]! as bool,
+      details: result[4]! as PlaytimeStatusDetails,
+      isUsagePermissionAccepted: result[5] as bool?,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! PlaytimeStatus || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(version, other.version) && _deepEquals(isInitialized, other.isInitialized) && _deepEquals(userId, other.userId) && _deepEquals(isTosAccepted, other.isTosAccepted) && _deepEquals(details, other.details) && _deepEquals(isUsagePermissionAccepted, other.isUsagePermissionAccepted);
   }
 
   @override
@@ -251,12 +657,7 @@ class PlaytimeStatusDetails {
   bool campaignsAvailable;
 
   /// Provides optional context explaining the eligibility state.
-  /// This list captures the current environment or account constraints, such as:
-  /// * `READY`: Fully eligible.
-  /// * `BLOCKED`: No campaigns available.
-  /// * `VPN_DETECTED`: Campaigns conditionally blocked.
-  /// * `GEO_MISMATCH`: No available campaigns for user region.
-  List<String?> campaignsState;
+  List<PlaytimeCampaignsState?> campaignsState;
 
   /// The test group assigned to the user by the backend, if any.
   int? testGroup;
@@ -278,7 +679,7 @@ class PlaytimeStatusDetails {
     return PlaytimeStatusDetails(
       isFraud: result[0]! as bool,
       campaignsAvailable: result[1]! as bool,
-      campaignsState: (result[2]! as List<Object?>).cast<String?>(),
+      campaignsState: (result[2]! as List<Object?>).cast<PlaytimeCampaignsState?>(),
       testGroup: result[3] as int?,
     );
   }
@@ -300,47 +701,47 @@ class PlaytimeStatusDetails {
   int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
 }
 
-/// The model that represents the status for SDK
-class PlaytimeStatus {
-  PlaytimeStatus({
-    required this.isInitialized,
-    required this.details,
+/// This class is used to pass additional metadata of the user.
+class PlaytimeMetadata {
+  PlaytimeMetadata({
+    this.metadata1,
+    this.metadata2,
   });
 
-  /// A flag indicating if the SDK is successfully initialized.
-  bool isInitialized;
+  /// An optional identifier that is provided back in the S2S payout URL.
+  String? metadata1;
 
-  /// Additional information about the SDK status.
-  PlaytimeStatusDetails details;
+  /// An optional identifier that is provided back in the S2S payout URL.
+  String? metadata2;
 
   List<Object?> _toList() {
     return <Object?>[
-      isInitialized,
-      details,
+      metadata1,
+      metadata2,
     ];
   }
 
   Object encode() {
     return _toList();  }
 
-  static PlaytimeStatus decode(Object result) {
+  static PlaytimeMetadata decode(Object result) {
     result as List<Object?>;
-    return PlaytimeStatus(
-      isInitialized: result[0]! as bool,
-      details: result[1]! as PlaytimeStatusDetails,
+    return PlaytimeMetadata(
+      metadata1: result[0] as String?,
+      metadata2: result[1] as String?,
     );
   }
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
   bool operator ==(Object other) {
-    if (other is! PlaytimeStatus || other.runtimeType != runtimeType) {
+    if (other is! PlaytimeMetadata || other.runtimeType != runtimeType) {
       return false;
     }
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(isInitialized, other.isInitialized) && _deepEquals(details, other.details);
+    return _deepEquals(metadata1, other.metadata1) && _deepEquals(metadata2, other.metadata2);
   }
 
   @override
@@ -348,71 +749,175 @@ class PlaytimeStatus {
   int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
 }
 
-/// The parameters related to User acquisition metadata.
-class PlaytimeParams {
-  PlaytimeParams({
-    this.uaNetwork,
-    this.uaChannel,
-    this.uaSubPublisherCleartext,
-    this.uaSubPublisherEncrypted,
-    this.placement,
-    this.promotionTag,
+/// Represents the placement where Studio campaigns will be shown.
+/// Use one of the predefined placements or create a custom placement via the custom case.
+///
+/// Use one of the predefined constants on `StudioPlacement`, or `StudioPlacement.custom()`
+/// for a publisher-supplied value.
+/// @basicnodoc
+class StudioPlacement {
+  StudioPlacement({
+    required this.value,
+    this.isCustom,
   });
 
-  /// User acquisition network where the user came from.
-  String? uaNetwork;
+  /// The case's internal value (e.g. `earn_tab`), or a publisher-supplied custom string.
+  String value;
 
-  /// User acquisition channel where the user came from; e.g. video, offerwall.
-  String? uaChannel;
+  /// Whether [value] is a publisher-supplied custom value rather than a predefined case.
+  bool? isCustom;
 
-  /// User acquisition sub ID in clear text where the user came from.
-  String? uaSubPublisherCleartext;
+  List<Object?> _toList() {
+    return <Object?>[
+      value,
+      isCustom,
+    ];
+  }
 
-  /// User acquisition sub ID in encrypted form where the user came from.
-  String? uaSubPublisherEncrypted;
+  Object encode() {
+    return _toList();  }
 
-  /// The placement of the Playtime experience; e.g. “home screen”, “more options menu”.
-  String? placement;
+  static StudioPlacement decode(Object result) {
+    result as List<Object?>;
+    return StudioPlacement(
+      value: result[0]! as String,
+      isCustom: result[1] as bool?,
+    );
+  }
 
-  /// Promotion tag to trigger user-level promotions.
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! StudioPlacement || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(value, other.value) && _deepEquals(isCustom, other.isCustom);
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+}
+
+/// Represents the display format for campaign rendering.
+/// Use one of the predefined formats or create a custom format via the custom case.
+///
+/// Use one of the predefined constants on `DisplayFormat`, or `DisplayFormat.custom()` for
+/// a publisher-supplied value.
+/// @basicnodoc
+class DisplayFormat {
+  DisplayFormat({
+    required this.value,
+    this.isCustom,
+  });
+
+  /// The case's internal value (e.g. `notification_inbox`), or a publisher-supplied custom
+  /// string.
+  String value;
+
+  /// Whether [value] is a publisher-supplied custom value rather than a predefined case.
+  bool? isCustom;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      value,
+      isCustom,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static DisplayFormat decode(Object result) {
+    result as List<Object?>;
+    return DisplayFormat(
+      value: result[0]! as String,
+      isCustom: result[1] as bool?,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! DisplayFormat || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(value, other.value) && _deepEquals(isCustom, other.isCustom);
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+}
+
+/// Options for campaign distribution requests. Provides context (placement, category,
+/// display format, promotion tag, and per-request UA context) to the backend for campaign
+/// targeting.
+/// @basicnodoc
+class CampaignOptions {
+  CampaignOptions({
+    this.placement,
+    this.category,
+    this.displayFormat,
+    this.promotionTag,
+    this.metadata,
+  });
+
+  /// The placement where the campaigns will be shown.
+  StudioPlacement? placement;
+
+  /// The app category filter. Defaults to GAMING.
+  AppCategory? category;
+
+  /// The UI display format.
+  DisplayFormat? displayFormat;
+
+  /// An optional promotion tag to trigger user-level promotions.
   String? promotionTag;
 
+  /// Metadata visible in S2S payouts.
+  PlaytimeMetadata? metadata;
+
   List<Object?> _toList() {
     return <Object?>[
-      uaNetwork,
-      uaChannel,
-      uaSubPublisherCleartext,
-      uaSubPublisherEncrypted,
       placement,
+      category,
+      displayFormat,
       promotionTag,
+      metadata,
     ];
   }
 
   Object encode() {
     return _toList();  }
 
-  static PlaytimeParams decode(Object result) {
+  static CampaignOptions decode(Object result) {
     result as List<Object?>;
-    return PlaytimeParams(
-      uaNetwork: result[0] as String?,
-      uaChannel: result[1] as String?,
-      uaSubPublisherCleartext: result[2] as String?,
-      uaSubPublisherEncrypted: result[3] as String?,
-      placement: result[4] as String?,
-      promotionTag: result[5] as String?,
+    return CampaignOptions(
+      placement: result[0] as StudioPlacement?,
+      category: result[1] as AppCategory?,
+      displayFormat: result[2] as DisplayFormat?,
+      promotionTag: result[3] as String?,
+      metadata: result[4] as PlaytimeMetadata?,
     );
   }
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
   bool operator ==(Object other) {
-    if (other is! PlaytimeParams || other.runtimeType != runtimeType) {
+    if (other is! CampaignOptions || other.runtimeType != runtimeType) {
       return false;
     }
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(uaNetwork, other.uaNetwork) && _deepEquals(uaChannel, other.uaChannel) && _deepEquals(uaSubPublisherCleartext, other.uaSubPublisherCleartext) && _deepEquals(uaSubPublisherEncrypted, other.uaSubPublisherEncrypted) && _deepEquals(placement, other.placement) && _deepEquals(promotionTag, other.promotionTag);
+    return _deepEquals(placement, other.placement) && _deepEquals(category, other.category) && _deepEquals(displayFormat, other.displayFormat) && _deepEquals(promotionTag, other.promotionTag) && _deepEquals(metadata, other.metadata);
   }
 
   @override
@@ -420,175 +925,43 @@ class PlaytimeParams {
   int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
 }
 
-/// Additional user information.
-class PlaytimeUserProfile {
-  PlaytimeUserProfile({
-    this.gender,
-    this.birthday,
-  });
-
-  /// The user's gender. Must be one of 'male', 'female' or 'unknown'.
-  String? gender;
-
-  /// ISO8601 timestamp designating user’s birthday, e.g. 2025-06-26T14:45:30.123Z.
-  String? birthday;
-
-  List<Object?> _toList() {
-    return <Object?>[
-      gender,
-      birthday,
-    ];
-  }
-
-  Object encode() {
-    return _toList();  }
-
-  static PlaytimeUserProfile decode(Object result) {
-    result as List<Object?>;
-    return PlaytimeUserProfile(
-      gender: result[0] as String?,
-      birthday: result[1] as String?,
-    );
-  }
-
-  @override
-  // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  bool operator ==(Object other) {
-    if (other is! PlaytimeUserProfile || other.runtimeType != runtimeType) {
-      return false;
-    }
-    if (identical(this, other)) {
-      return true;
-    }
-    return _deepEquals(gender, other.gender) && _deepEquals(birthday, other.birthday);
-  }
-
-  @override
-  // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
-}
-
-/// Rewarded action representation.
+/// Options for installed-campaign requests. Exposes only the app category filter for
+/// campaign targeting.
 /// @basicnodoc
-class PlaytimeRewardAction {
-  PlaytimeRewardAction({
-    this.name,
-    this.taskDescription,
-    required this.taskType,
-    this.playDuration,
-    this.level,
-    this.amount,
-    this.rewardedAt,
-    this.rewardsCount,
-    this.completedRewards,
-    this.timedCoinsDuration,
-    this.timedCoins,
-    this.originalCoins,
-    this.isTimed,
-    this.isRewardedForPromotion,
-    this.boosterExpiresAt,
+class InstalledCampaignOptions {
+  InstalledCampaignOptions({
+    this.category,
   });
 
-  /// Reward action name.
-  String? name;
-
-  /// Description of the task.
-  String? taskDescription;
-
-  /// Type of task to complete. Possible values: sequential, bonus, playtime.
-  String taskType;
-
-  /// Duration (in seconds) of play time required to reward a time-based event. Currently not supported on iOS.
-  int? playDuration;
-
-  /// The level number of the time-based event. Currently not supported on iOS.
-  int? level;
-
-  /// The amount of coins or rewards the user will receive upon completing the event.
-  int? amount;
-
-  /// Timestamp when a reward was granted (ISO 8601).
-  String? rewardedAt;
-
-  /// Number of times that the action can be rewarded, applicable to repetitive events.
-  int? rewardsCount;
-
-  /// Number of times that the action has been rewarded, applicable to repetitive events.
-  int? completedRewards;
-
-  /// Time window (in minutes) during which the Booster reward is applicable.
-  int? timedCoinsDuration;
-
-  /// Amount of coins rewarded during the booster period.
-  int? timedCoins;
-
-  /// Amount of coins that would be rewarded without any bonuses applied.
-  int? originalCoins;
-
-  /// Flag indicating whether the event is a booster event.
-  bool? isTimed;
-
-  /// Flag indicating whether the event has been rewarded with promotion.
-  bool? isRewardedForPromotion;
-
-  /// The timestamp (ISO 8601) indicating when the booster reward expires.
-  /// Use it to determine user eligibility for booster rewards and support features such as booster countdown.
-  String? boosterExpiresAt;
+  /// The app category filter. Defaults to GAMING.
+  AppCategory? category;
 
   List<Object?> _toList() {
     return <Object?>[
-      name,
-      taskDescription,
-      taskType,
-      playDuration,
-      level,
-      amount,
-      rewardedAt,
-      rewardsCount,
-      completedRewards,
-      timedCoinsDuration,
-      timedCoins,
-      originalCoins,
-      isTimed,
-      isRewardedForPromotion,
-      boosterExpiresAt,
+      category,
     ];
   }
 
   Object encode() {
     return _toList();  }
 
-  static PlaytimeRewardAction decode(Object result) {
+  static InstalledCampaignOptions decode(Object result) {
     result as List<Object?>;
-    return PlaytimeRewardAction(
-      name: result[0] as String?,
-      taskDescription: result[1] as String?,
-      taskType: result[2]! as String,
-      playDuration: result[3] as int?,
-      level: result[4] as int?,
-      amount: result[5] as int?,
-      rewardedAt: result[6] as String?,
-      rewardsCount: result[7] as int?,
-      completedRewards: result[8] as int?,
-      timedCoinsDuration: result[9] as int?,
-      timedCoins: result[10] as int?,
-      originalCoins: result[11] as int?,
-      isTimed: result[12] as bool?,
-      isRewardedForPromotion: result[13] as bool?,
-      boosterExpiresAt: result[14] as String?,
+    return InstalledCampaignOptions(
+      category: result[0] as AppCategory?,
     );
   }
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
   bool operator ==(Object other) {
-    if (other is! PlaytimeRewardAction || other.runtimeType != runtimeType) {
+    if (other is! InstalledCampaignOptions || other.runtimeType != runtimeType) {
       return false;
     }
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(name, other.name) && _deepEquals(taskDescription, other.taskDescription) && _deepEquals(taskType, other.taskType) && _deepEquals(playDuration, other.playDuration) && _deepEquals(level, other.level) && _deepEquals(amount, other.amount) && _deepEquals(rewardedAt, other.rewardedAt) && _deepEquals(rewardsCount, other.rewardsCount) && _deepEquals(completedRewards, other.completedRewards) && _deepEquals(timedCoinsDuration, other.timedCoinsDuration) && _deepEquals(timedCoins, other.timedCoins) && _deepEquals(originalCoins, other.originalCoins) && _deepEquals(isTimed, other.isTimed) && _deepEquals(isRewardedForPromotion, other.isRewardedForPromotion) && _deepEquals(boosterExpiresAt, other.boosterExpiresAt);
+    return _deepEquals(category, other.category);
   }
 
   @override
@@ -596,72 +969,42 @@ class PlaytimeRewardAction {
   int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
 }
 
-/// Promotion representation.
+/// The response of the SDK containing campaigns.
 /// @basicnodoc
-class PlaytimePromotion {
-  PlaytimePromotion({
-    this.name,
-    this.promotionDescription,
-    this.boostFactor,
-    this.startTime,
-    this.endTime,
-    this.targetingType,
+class PlaytimeCampaignsResponse {
+  PlaytimeCampaignsResponse({
+    required this.campaigns,
   });
 
-  /// Promotion name.
-  String? name;
-
-  /// Description of the promotion.
-  String? promotionDescription;
-
-  /// Boost multiplier for the promotion.
-  double? boostFactor;
-
-  /// Promotion start timestamp (ISO 8601).
-  String? startTime;
-
-  /// Promotion end timestamp (ISO 8601).
-  String? endTime;
-
-  /// Targeting type for high quality users.
-  String? targetingType;
+  /// The requested selection of campaigns.
+  List<PlaytimeCampaign?> campaigns;
 
   List<Object?> _toList() {
     return <Object?>[
-      name,
-      promotionDescription,
-      boostFactor,
-      startTime,
-      endTime,
-      targetingType,
+      campaigns,
     ];
   }
 
   Object encode() {
     return _toList();  }
 
-  static PlaytimePromotion decode(Object result) {
+  static PlaytimeCampaignsResponse decode(Object result) {
     result as List<Object?>;
-    return PlaytimePromotion(
-      name: result[0] as String?,
-      promotionDescription: result[1] as String?,
-      boostFactor: result[2] as double?,
-      startTime: result[3] as String?,
-      endTime: result[4] as String?,
-      targetingType: result[5] as String?,
+    return PlaytimeCampaignsResponse(
+      campaigns: (result[0]! as List<Object?>).cast<PlaytimeCampaign?>(),
     );
   }
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
   bool operator ==(Object other) {
-    if (other is! PlaytimePromotion || other.runtimeType != runtimeType) {
+    if (other is! PlaytimeCampaignsResponse || other.runtimeType != runtimeType) {
       return false;
     }
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(name, other.name) && _deepEquals(promotionDescription, other.promotionDescription) && _deepEquals(boostFactor, other.boostFactor) && _deepEquals(startTime, other.startTime) && _deepEquals(endTime, other.endTime) && _deepEquals(targetingType, other.targetingType);
+    return _deepEquals(campaigns, other.campaigns);
   }
 
   @override
@@ -669,7 +1012,192 @@ class PlaytimePromotion {
   int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
 }
 
-/// A interface representing a media item.
+/// The model that represents a campaign and/or installed application.
+/// @basicnodoc
+class PlaytimeCampaign {
+  PlaytimeCampaign({
+    required this.appName,
+    required this.appDescription,
+    required this.appID,
+    this.appBundleID,
+    this.installedAt,
+    this.uninstalledAt,
+    this.rewardingExpiresAfter,
+    this.rewardingExpiresAt,
+    this.campaignExpiresAt,
+    this.eventConfig,
+    this.appCategory,
+    this.campaignType,
+    this.featuredPosition,
+    this.score,
+    this.image,
+    this.video,
+    this.iconImage,
+    this.promotion,
+    required this.isCompleted,
+    this.campaignUUID,
+    required this.status,
+    required this.isCpa,
+    required this.cpa,
+    required this.token,
+  });
+
+  /// App name.
+  String appName;
+
+  /// Short description of the app.
+  String appDescription;
+
+  /// Unique identifier for the app.
+  String appID;
+
+  /// ID in the format com.example.myapp.
+  ///
+  /// Provided on iOS only; null on Android.
+  String? appBundleID;
+
+  /// App installation timestamp (ISO 8601).
+  String? installedAt;
+
+  /// App uninstallation timestamp (ISO 8601).
+  String? uninstalledAt;
+
+  /// Time (in days) after which rewards expire after installation.
+  int? rewardingExpiresAfter;
+
+  /// Expiration timestamp (ISO 8601) denoting how long players can get rewards after
+  /// installing the app.
+  String? rewardingExpiresAt;
+
+  /// Timestamp (ISO 8601) denoting the maximum amount of time after fetching the campaign
+  /// that it can be installed.
+  String? campaignExpiresAt;
+
+  /// Event and rewards configuration.
+  PlaytimeEventConfig? eventConfig;
+
+  /// App category.
+  String? appCategory;
+
+  /// Campaign type.
+  String? campaignType;
+
+  /// Ordered position for specific featured campaigns.
+  int? featuredPosition;
+
+  /// eCPM of the campaign.
+  double? score;
+
+  /// Campaign media assets (portrait & landscape).
+  PlaytimeMedia? image;
+
+  /// Campaign video media assets.
+  PlaytimeMedia? video;
+
+  /// URL to the campaign icon image.
+  String? iconImage;
+
+  /// Active promotion details, if any.
+  PlaytimePromotion? promotion;
+
+  /// Flag indicating whether all rewards have been collected.
+  bool isCompleted;
+
+  /// Campaign UUID.
+  String? campaignUUID;
+
+  /// Current status of the campaign.
+  PlaytimeCampaignStatus status;
+
+  /// Flag indicating whether CPA is enabled.
+  bool isCpa;
+
+  /// CPA of the campaign.
+  double cpa;
+
+  /// The campaign token.
+  String token;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      appName,
+      appDescription,
+      appID,
+      appBundleID,
+      installedAt,
+      uninstalledAt,
+      rewardingExpiresAfter,
+      rewardingExpiresAt,
+      campaignExpiresAt,
+      eventConfig,
+      appCategory,
+      campaignType,
+      featuredPosition,
+      score,
+      image,
+      video,
+      iconImage,
+      promotion,
+      isCompleted,
+      campaignUUID,
+      status,
+      isCpa,
+      cpa,
+      token,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static PlaytimeCampaign decode(Object result) {
+    result as List<Object?>;
+    return PlaytimeCampaign(
+      appName: result[0]! as String,
+      appDescription: result[1]! as String,
+      appID: result[2]! as String,
+      appBundleID: result[3] as String?,
+      installedAt: result[4] as String?,
+      uninstalledAt: result[5] as String?,
+      rewardingExpiresAfter: result[6] as int?,
+      rewardingExpiresAt: result[7] as String?,
+      campaignExpiresAt: result[8] as String?,
+      eventConfig: result[9] as PlaytimeEventConfig?,
+      appCategory: result[10] as String?,
+      campaignType: result[11] as String?,
+      featuredPosition: result[12] as int?,
+      score: result[13] as double?,
+      image: result[14] as PlaytimeMedia?,
+      video: result[15] as PlaytimeMedia?,
+      iconImage: result[16] as String?,
+      promotion: result[17] as PlaytimePromotion?,
+      isCompleted: result[18]! as bool,
+      campaignUUID: result[19] as String?,
+      status: result[20]! as PlaytimeCampaignStatus,
+      isCpa: result[21]! as bool,
+      cpa: result[22]! as double,
+      token: result[23]! as String,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! PlaytimeCampaign || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(appName, other.appName) && _deepEquals(appDescription, other.appDescription) && _deepEquals(appID, other.appID) && _deepEquals(appBundleID, other.appBundleID) && _deepEquals(installedAt, other.installedAt) && _deepEquals(uninstalledAt, other.uninstalledAt) && _deepEquals(rewardingExpiresAfter, other.rewardingExpiresAfter) && _deepEquals(rewardingExpiresAt, other.rewardingExpiresAt) && _deepEquals(campaignExpiresAt, other.campaignExpiresAt) && _deepEquals(eventConfig, other.eventConfig) && _deepEquals(appCategory, other.appCategory) && _deepEquals(campaignType, other.campaignType) && _deepEquals(featuredPosition, other.featuredPosition) && _deepEquals(score, other.score) && _deepEquals(image, other.image) && _deepEquals(video, other.video) && _deepEquals(iconImage, other.iconImage) && _deepEquals(promotion, other.promotion) && _deepEquals(isCompleted, other.isCompleted) && _deepEquals(campaignUUID, other.campaignUUID) && _deepEquals(status, other.status) && _deepEquals(isCpa, other.isCpa) && _deepEquals(cpa, other.cpa) && _deepEquals(token, other.token);
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+}
+
+/// A class representing a media item.
 /// @basicnodoc
 class PlaytimeMedia {
   PlaytimeMedia({
@@ -718,8 +1246,80 @@ class PlaytimeMedia {
   int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
 }
 
+/// Promotion representation.
+/// @basicnodoc
+class PlaytimePromotion {
+  PlaytimePromotion({
+    this.name,
+    this.promotionDescription,
+    this.boostFactor,
+    this.startTime,
+    this.endTime,
+    this.targetingType,
+  });
+
+  /// Promotion name.
+  String? name;
+
+  /// Description of the promotion.
+  String? promotionDescription;
+
+  /// Boost multiplier for the promotion.
+  double? boostFactor;
+
+  /// Promotion start timestamp (ISO 8601).
+  String? startTime;
+
+  /// Promotion end timestamp (ISO 8601).
+  String? endTime;
+
+  /// Targeting type for promotion.
+  String? targetingType;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      name,
+      promotionDescription,
+      boostFactor,
+      startTime,
+      endTime,
+      targetingType,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static PlaytimePromotion decode(Object result) {
+    result as List<Object?>;
+    return PlaytimePromotion(
+      name: result[0] as String?,
+      promotionDescription: result[1] as String?,
+      boostFactor: result[2] as double?,
+      startTime: result[3] as String?,
+      endTime: result[4] as String?,
+      targetingType: result[5] as String?,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! PlaytimePromotion || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(name, other.name) && _deepEquals(promotionDescription, other.promotionDescription) && _deepEquals(boostFactor, other.boostFactor) && _deepEquals(startTime, other.startTime) && _deepEquals(endTime, other.endTime) && _deepEquals(targetingType, other.targetingType);
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+}
+
 /// Configuration for multi-event rewards.
-/// The interface provides detailed information about events and rewards.
 /// @basicnodoc
 class PlaytimeEventConfig {
   PlaytimeEventConfig({
@@ -731,26 +1331,25 @@ class PlaytimeEventConfig {
     this.totalCoinsPossible,
     this.secondsToNextLevel,
     this.totalOriginalCoinsPossible,
+    this.cashbackReward,
+    required this.multipliersActions,
     this.totalSequentialCoins,
     this.totalOriginalSequentialCoins,
     this.totalBonusCoins,
     this.totalOriginalBonusCoins,
-    this.cashbackReward,
-    required this.multipliersActions,
   });
 
   /// Array of rewarded events that must be completed in the given order.
-  /// These will usually be progress events a user can reach in a game or app.
   List<PlaytimeRewardAction?> sequentialActions;
 
   /// Array of rewarded events that can be completed in any order.
-  /// These will be bonus rewards a user should get on top of the other rewards.
   List<PlaytimeRewardAction?> bonusActions;
 
   /// Array of events that are rewarded based on the time played.
   List<PlaytimeRewardAction?> timeBasedActions;
 
-  /// Array of CPA (Cost Per Action) events that reward the user for completing specific in-app actions.
+  /// Array of CPA (Cost Per Action) events that reward the user for completing specific
+  /// in-app actions.
   List<PlaytimeRewardAction?> cpaActions;
 
   /// Total coins collected by the user.
@@ -760,11 +1359,18 @@ class PlaytimeEventConfig {
   int? totalCoinsPossible;
 
   /// The amount of time in seconds to the next level.
-  /// Supported only on Android.
+  ///
+  /// Provided on Android only; null on iOS.
   int? secondsToNextLevel;
 
   /// Maximum possible coins for this config if there was no promotion.
   int? totalOriginalCoinsPossible;
+
+  /// Cashback reward configuration for in-app purchases.
+  PlaytimeCashbackConfig? cashbackReward;
+
+  /// Array of events that multiply the rewards.
+  List<PlaytimeRewardActionMultiplier?> multipliersActions;
 
   /// Total amount of coins for all sequential events with promotion multiplier.
   int? totalSequentialCoins;
@@ -778,13 +1384,6 @@ class PlaytimeEventConfig {
   /// Total amount of coins for all bonus events without promotion multiplier.
   int? totalOriginalBonusCoins;
 
-  /// Cashback reward configuration for in-app purchases. A missing value means that the feature
-  /// is not supported for the campaign or the SDK.
-  PlaytimeCashbackConfig? cashbackReward;
-
-  /// Array of events that multiply the rewards.
-  List<PlaytimeRewardActionMultiplier?> multipliersActions;
-
   List<Object?> _toList() {
     return <Object?>[
       sequentialActions,
@@ -795,12 +1394,12 @@ class PlaytimeEventConfig {
       totalCoinsPossible,
       secondsToNextLevel,
       totalOriginalCoinsPossible,
+      cashbackReward,
+      multipliersActions,
       totalSequentialCoins,
       totalOriginalSequentialCoins,
       totalBonusCoins,
       totalOriginalBonusCoins,
-      cashbackReward,
-      multipliersActions,
     ];
   }
 
@@ -818,12 +1417,12 @@ class PlaytimeEventConfig {
       totalCoinsPossible: result[5] as int?,
       secondsToNextLevel: result[6] as int?,
       totalOriginalCoinsPossible: result[7] as int?,
-      totalSequentialCoins: result[8] as int?,
-      totalOriginalSequentialCoins: result[9] as int?,
-      totalBonusCoins: result[10] as int?,
-      totalOriginalBonusCoins: result[11] as int?,
-      cashbackReward: result[12] as PlaytimeCashbackConfig?,
-      multipliersActions: (result[13]! as List<Object?>).cast<PlaytimeRewardActionMultiplier?>(),
+      cashbackReward: result[8] as PlaytimeCashbackConfig?,
+      multipliersActions: (result[9]! as List<Object?>).cast<PlaytimeRewardActionMultiplier?>(),
+      totalSequentialCoins: result[10] as int?,
+      totalOriginalSequentialCoins: result[11] as int?,
+      totalBonusCoins: result[12] as int?,
+      totalOriginalBonusCoins: result[13] as int?,
     );
   }
 
@@ -836,7 +1435,208 @@ class PlaytimeEventConfig {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(sequentialActions, other.sequentialActions) && _deepEquals(bonusActions, other.bonusActions) && _deepEquals(timeBasedActions, other.timeBasedActions) && _deepEquals(cpaActions, other.cpaActions) && _deepEquals(totalCoinsCollected, other.totalCoinsCollected) && _deepEquals(totalCoinsPossible, other.totalCoinsPossible) && _deepEquals(secondsToNextLevel, other.secondsToNextLevel) && _deepEquals(totalOriginalCoinsPossible, other.totalOriginalCoinsPossible) && _deepEquals(totalSequentialCoins, other.totalSequentialCoins) && _deepEquals(totalOriginalSequentialCoins, other.totalOriginalSequentialCoins) && _deepEquals(totalBonusCoins, other.totalBonusCoins) && _deepEquals(totalOriginalBonusCoins, other.totalOriginalBonusCoins) && _deepEquals(cashbackReward, other.cashbackReward) && _deepEquals(multipliersActions, other.multipliersActions);
+    return _deepEquals(sequentialActions, other.sequentialActions) && _deepEquals(bonusActions, other.bonusActions) && _deepEquals(timeBasedActions, other.timeBasedActions) && _deepEquals(cpaActions, other.cpaActions) && _deepEquals(totalCoinsCollected, other.totalCoinsCollected) && _deepEquals(totalCoinsPossible, other.totalCoinsPossible) && _deepEquals(secondsToNextLevel, other.secondsToNextLevel) && _deepEquals(totalOriginalCoinsPossible, other.totalOriginalCoinsPossible) && _deepEquals(cashbackReward, other.cashbackReward) && _deepEquals(multipliersActions, other.multipliersActions) && _deepEquals(totalSequentialCoins, other.totalSequentialCoins) && _deepEquals(totalOriginalSequentialCoins, other.totalOriginalSequentialCoins) && _deepEquals(totalBonusCoins, other.totalBonusCoins) && _deepEquals(totalOriginalBonusCoins, other.totalOriginalBonusCoins);
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+}
+
+/// Rewarded action representation.
+/// @basicnodoc
+class PlaytimeRewardAction {
+  PlaytimeRewardAction({
+    this.name,
+    this.taskDescription,
+    this.level,
+    required this.taskType,
+    this.playDuration,
+    required this.amount,
+    this.rewardedAt,
+    this.rewardsCount,
+    this.completedRewards,
+    this.timedCoinsDuration,
+    this.timedCoins,
+    this.originalCoins,
+    this.isTimed,
+    this.isRewardedForPromotion,
+    this.boosterExpiresAt,
+  });
+
+  /// Reward action name.
+  String? name;
+
+  /// Description of the task.
+  String? taskDescription;
+
+  /// The level number of the time-based event.
+  int? level;
+
+  /// Type of task to complete. Possible values: sequential, bonus, playtime, cpa.
+  String taskType;
+
+  /// Duration (in seconds) of play time required to reward a time-based event. Currently
+  /// not supported on iOS.
+  int? playDuration;
+
+  /// The amount of coins or rewards the user will receive upon completing the event.
+  int amount;
+
+  /// Timestamp when a reward was granted (ISO 8601).
+  String? rewardedAt;
+
+  /// Number of times that the action can be rewarded, applicable to repetitive events.
+  int? rewardsCount;
+
+  /// Number of times that the action has been rewarded, applicable to repetitive events.
+  int? completedRewards;
+
+  /// Time window (in minutes) during which the Booster reward is applicable.
+  int? timedCoinsDuration;
+
+  /// Amount of coins rewarded during the booster period.
+  int? timedCoins;
+
+  /// The amount of coins or rewards the user would receive if there was no promotion.
+  int? originalCoins;
+
+  /// Flag indicating whether the event is a booster event.
+  bool? isTimed;
+
+  /// Flag indicating whether the event has been rewarded with promotion.
+  bool? isRewardedForPromotion;
+
+  /// Timestamp (ISO 8601) indicating when the booster reward expires.
+  String? boosterExpiresAt;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      name,
+      taskDescription,
+      level,
+      taskType,
+      playDuration,
+      amount,
+      rewardedAt,
+      rewardsCount,
+      completedRewards,
+      timedCoinsDuration,
+      timedCoins,
+      originalCoins,
+      isTimed,
+      isRewardedForPromotion,
+      boosterExpiresAt,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static PlaytimeRewardAction decode(Object result) {
+    result as List<Object?>;
+    return PlaytimeRewardAction(
+      name: result[0] as String?,
+      taskDescription: result[1] as String?,
+      level: result[2] as int?,
+      taskType: result[3]! as String,
+      playDuration: result[4] as int?,
+      amount: result[5]! as int,
+      rewardedAt: result[6] as String?,
+      rewardsCount: result[7] as int?,
+      completedRewards: result[8] as int?,
+      timedCoinsDuration: result[9] as int?,
+      timedCoins: result[10] as int?,
+      originalCoins: result[11] as int?,
+      isTimed: result[12] as bool?,
+      isRewardedForPromotion: result[13] as bool?,
+      boosterExpiresAt: result[14] as String?,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! PlaytimeRewardAction || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(name, other.name) && _deepEquals(taskDescription, other.taskDescription) && _deepEquals(level, other.level) && _deepEquals(taskType, other.taskType) && _deepEquals(playDuration, other.playDuration) && _deepEquals(amount, other.amount) && _deepEquals(rewardedAt, other.rewardedAt) && _deepEquals(rewardsCount, other.rewardsCount) && _deepEquals(completedRewards, other.completedRewards) && _deepEquals(timedCoinsDuration, other.timedCoinsDuration) && _deepEquals(timedCoins, other.timedCoins) && _deepEquals(originalCoins, other.originalCoins) && _deepEquals(isTimed, other.isTimed) && _deepEquals(isRewardedForPromotion, other.isRewardedForPromotion) && _deepEquals(boosterExpiresAt, other.boosterExpiresAt);
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+}
+
+/// Configuration for a multiplier event that multiplies rewards.
+/// @basicnodoc
+class PlaytimeRewardActionMultiplier {
+  PlaytimeRewardActionMultiplier({
+    this.eventName,
+    this.eventDescription,
+    this.multiplierFactorPercentage,
+    this.multiplierLevels,
+    this.status,
+    this.usedLevels,
+  });
+
+  /// The event's name.
+  String? eventName;
+
+  /// The event's description.
+  String? eventDescription;
+
+  /// Multiplication factor of the coin for the multiplier event (0-100).
+  int? multiplierFactorPercentage;
+
+  /// Maximum number of levels that can be multiplied by the event.
+  int? multiplierLevels;
+
+  /// Status of the multiplied event: Pending, Active, or Finished.
+  String? status;
+
+  /// Number of levels that has been multiplied by the event.
+  int? usedLevels;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      eventName,
+      eventDescription,
+      multiplierFactorPercentage,
+      multiplierLevels,
+      status,
+      usedLevels,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static PlaytimeRewardActionMultiplier decode(Object result) {
+    result as List<Object?>;
+    return PlaytimeRewardActionMultiplier(
+      eventName: result[0] as String?,
+      eventDescription: result[1] as String?,
+      multiplierFactorPercentage: result[2] as int?,
+      multiplierLevels: result[3] as int?,
+      status: result[4] as String?,
+      usedLevels: result[5] as int?,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! PlaytimeRewardActionMultiplier || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(eventName, other.eventName) && _deepEquals(eventDescription, other.eventDescription) && _deepEquals(multiplierFactorPercentage, other.multiplierFactorPercentage) && _deepEquals(multiplierLevels, other.multiplierLevels) && _deepEquals(status, other.status) && _deepEquals(usedLevels, other.usedLevels);
   }
 
   @override
@@ -856,7 +1656,7 @@ class PlaytimeCashbackConfig {
     this.pendingRewards,
   });
 
-  /// Amount of coins that is to be rewarded per 1 USD of IAP.
+  /// Amount of coins rewarded per 1 USD of IAP.
   double? exchangeRate;
 
   /// Description of the cashback reward.
@@ -922,14 +1722,14 @@ class PlaytimeCashbackConfig {
 class PlaytimeCashbackReward {
   PlaytimeCashbackReward({
     this.totalCoins,
-    this.events,
+    required this.events,
   });
 
   /// Total amount of coins for given rewarded events group.
   int? totalCoins;
 
   /// Events in the reward group.
-  List<PlaytimeCashbackRewardEvent?>? events;
+  List<PlaytimeCashbackRewardEvent?> events;
 
   List<Object?> _toList() {
     return <Object?>[
@@ -945,7 +1745,7 @@ class PlaytimeCashbackReward {
     result as List<Object?>;
     return PlaytimeCashbackReward(
       totalCoins: result[0] as int?,
-      events: (result[1] as List<Object?>?)?.cast<PlaytimeCashbackRewardEvent?>(),
+      events: (result[1]! as List<Object?>).cast<PlaytimeCashbackRewardEvent?>(),
     );
   }
 
@@ -978,10 +1778,10 @@ class PlaytimeCashbackRewardEvent {
   /// Amount of coins granted for the event.
   int? coins;
 
-  /// Timestamp (ISO 8601).
+  /// Timestamp (ISO 8601) when the event is processed.
   String? processAt;
 
-  /// Timestamp (ISO 8601).
+  /// Timestamp (ISO 8601) when the event is received.
   String? receivedAt;
 
   List<Object?> _toList() {
@@ -1021,402 +1821,6 @@ class PlaytimeCashbackRewardEvent {
   int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
 }
 
-/// The class provides detailed information about events that multiply rewards.
-/// @basicnodoc
-class PlaytimeRewardActionMultiplier {
-  PlaytimeRewardActionMultiplier({
-    this.eventName,
-    this.eventDescription,
-    this.multiplierFactorPercentage,
-    this.multiplierLevels,
-    this.status,
-    this.usedLevels,
-  });
-
-  /// Return the event's name
-  String? eventName;
-
-  /// Returns the event's description
-  String? eventDescription;
-
-  /// Return the multiplication factor of the coin for the multiplier event. value: 0-100
-  int? multiplierFactorPercentage;
-
-  /// Returns the maximum number of levels that can be multiplied by the event
-  int? multiplierLevels;
-
-  /// Return the status of the multiplied event:
-  /// "Pending": multiplier events not used yet
-  /// "Active": multiplier event is currently active
-  /// "Finished": multiplier event has been used and finished
-  String? status;
-
-  /// Returns the number of levels that has been multiplied by the event
-  int? usedLevels;
-
-  List<Object?> _toList() {
-    return <Object?>[
-      eventName,
-      eventDescription,
-      multiplierFactorPercentage,
-      multiplierLevels,
-      status,
-      usedLevels,
-    ];
-  }
-
-  Object encode() {
-    return _toList();  }
-
-  static PlaytimeRewardActionMultiplier decode(Object result) {
-    result as List<Object?>;
-    return PlaytimeRewardActionMultiplier(
-      eventName: result[0] as String?,
-      eventDescription: result[1] as String?,
-      multiplierFactorPercentage: result[2] as int?,
-      multiplierLevels: result[3] as int?,
-      status: result[4] as String?,
-      usedLevels: result[5] as int?,
-    );
-  }
-
-  @override
-  // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  bool operator ==(Object other) {
-    if (other is! PlaytimeRewardActionMultiplier || other.runtimeType != runtimeType) {
-      return false;
-    }
-    if (identical(this, other)) {
-      return true;
-    }
-    return _deepEquals(eventName, other.eventName) && _deepEquals(eventDescription, other.eventDescription) && _deepEquals(multiplierFactorPercentage, other.multiplierFactorPercentage) && _deepEquals(multiplierLevels, other.multiplierLevels) && _deepEquals(status, other.status) && _deepEquals(usedLevels, other.usedLevels);
-  }
-
-  @override
-  // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
-}
-
-/// The model that represents a campaign and/or installed application.
-/// @basicnodoc
-class PlaytimeCampaign {
-  PlaytimeCampaign({
-    this.campaignUUID,
-    required this.appName,
-    required this.appDescription,
-    required this.appID,
-    this.appBundleID,
-    this.appStoreID,
-    this.installedAt,
-    this.uninstalledAt,
-    this.rewardingExpiresAfter,
-    this.rewardingExpiresAt,
-    this.campaignExpiresAt,
-    this.appCategory,
-    this.campaignType,
-    this.featuredPosition,
-    this.score,
-    this.iconImage,
-    this.image,
-    this.video,
-    this.promotion,
-    this.eventConfig,
-    this.isCompleted,
-    this.status,
-    required this.isCpa,
-    required this.cpa,
-  });
-
-  /// Campaign UUID
-  String? campaignUUID;
-
-  /// App name.
-  String appName;
-
-  /// Short description of the app.
-  String appDescription;
-
-  /// Unique identifier for the app.
-  /// On Android, it’s represented by a string in the format com.example.myapp.
-  /// On iOS, it’s App Store ID.
-  String appID;
-
-  /// On iOS, it’s the ID in the format com.example.myapp.
-  String? appBundleID;
-
-  /// On iOS, it’s application's store ID number that is part of the App Store link.
-  String? appStoreID;
-
-  /// App installation timestamp (ISO 8601).
-  String? installedAt;
-
-  /// App uninstallation timestamp (ISO 8601).
-  String? uninstalledAt;
-
-  /// Time (in days) after which rewards expire after installation.
-  int? rewardingExpiresAfter;
-
-  /// Expiration timestamp (ISO 8601) denoting how long players can get
-  /// rewards after installing the app.
-  String? rewardingExpiresAt;
-
-  /// Timestamp (ISO 8601) denoting the maximum amount of time after
-  /// fetching the campaign that it can be installed.
-  String? campaignExpiresAt;
-
-  /// App category.
-  String? appCategory;
-
-  /// Campaign type.
-  String? campaignType;
-
-  /// The ordered position for specific featured campaigns.
-  int? featuredPosition;
-
-  /// The eCPM of the campaign.
-  double? score;
-
-  /// URL to the campaign icon image.
-  String? iconImage;
-
-  /// Campaign media assets (portrait & landscape).
-  PlaytimeMedia? image;
-
-  /// Campaign video media assets.
-  PlaytimeMedia? video;
-
-  /// Active promotion details, if any.
-  PlaytimePromotion? promotion;
-
-  /// Event and rewards configuration.
-  PlaytimeEventConfig? eventConfig;
-
-  /// Flag indicating whether all rewards have been collected.
-  bool? isCompleted;
-
-  /// Current status of the campaign.
-  String? status;
-
-  /// Flag indicating whether CPA is enabled.
-  bool isCpa;
-
-  /// CPA of the campaign.
-  double cpa;
-
-  List<Object?> _toList() {
-    return <Object?>[
-      campaignUUID,
-      appName,
-      appDescription,
-      appID,
-      appBundleID,
-      appStoreID,
-      installedAt,
-      uninstalledAt,
-      rewardingExpiresAfter,
-      rewardingExpiresAt,
-      campaignExpiresAt,
-      appCategory,
-      campaignType,
-      featuredPosition,
-      score,
-      iconImage,
-      image,
-      video,
-      promotion,
-      eventConfig,
-      isCompleted,
-      status,
-      isCpa,
-      cpa,
-    ];
-  }
-
-  Object encode() {
-    return _toList();  }
-
-  static PlaytimeCampaign decode(Object result) {
-    result as List<Object?>;
-    return PlaytimeCampaign(
-      campaignUUID: result[0] as String?,
-      appName: result[1]! as String,
-      appDescription: result[2]! as String,
-      appID: result[3]! as String,
-      appBundleID: result[4] as String?,
-      appStoreID: result[5] as String?,
-      installedAt: result[6] as String?,
-      uninstalledAt: result[7] as String?,
-      rewardingExpiresAfter: result[8] as int?,
-      rewardingExpiresAt: result[9] as String?,
-      campaignExpiresAt: result[10] as String?,
-      appCategory: result[11] as String?,
-      campaignType: result[12] as String?,
-      featuredPosition: result[13] as int?,
-      score: result[14] as double?,
-      iconImage: result[15] as String?,
-      image: result[16] as PlaytimeMedia?,
-      video: result[17] as PlaytimeMedia?,
-      promotion: result[18] as PlaytimePromotion?,
-      eventConfig: result[19] as PlaytimeEventConfig?,
-      isCompleted: result[20] as bool?,
-      status: result[21] as String?,
-      isCpa: result[22]! as bool,
-      cpa: result[23]! as double,
-    );
-  }
-
-  @override
-  // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  bool operator ==(Object other) {
-    if (other is! PlaytimeCampaign || other.runtimeType != runtimeType) {
-      return false;
-    }
-    if (identical(this, other)) {
-      return true;
-    }
-    return _deepEquals(campaignUUID, other.campaignUUID) && _deepEquals(appName, other.appName) && _deepEquals(appDescription, other.appDescription) && _deepEquals(appID, other.appID) && _deepEquals(appBundleID, other.appBundleID) && _deepEquals(appStoreID, other.appStoreID) && _deepEquals(installedAt, other.installedAt) && _deepEquals(uninstalledAt, other.uninstalledAt) && _deepEquals(rewardingExpiresAfter, other.rewardingExpiresAfter) && _deepEquals(rewardingExpiresAt, other.rewardingExpiresAt) && _deepEquals(campaignExpiresAt, other.campaignExpiresAt) && _deepEquals(appCategory, other.appCategory) && _deepEquals(campaignType, other.campaignType) && _deepEquals(featuredPosition, other.featuredPosition) && _deepEquals(score, other.score) && _deepEquals(iconImage, other.iconImage) && _deepEquals(image, other.image) && _deepEquals(video, other.video) && _deepEquals(promotion, other.promotion) && _deepEquals(eventConfig, other.eventConfig) && _deepEquals(isCompleted, other.isCompleted) && _deepEquals(status, other.status) && _deepEquals(isCpa, other.isCpa) && _deepEquals(cpa, other.cpa);
-  }
-
-  @override
-  // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
-}
-
-/// The response of the SDK containing campaigns.
-/// @basicnodoc
-class PlaytimeCampaignsResponse {
-  PlaytimeCampaignsResponse({
-    required this.campaigns,
-  });
-
-  /// The requested selection of campaigns.
-  List<PlaytimeCampaign?> campaigns;
-
-  List<Object?> _toList() {
-    return <Object?>[
-      campaigns,
-    ];
-  }
-
-  Object encode() {
-    return _toList();  }
-
-  static PlaytimeCampaignsResponse decode(Object result) {
-    result as List<Object?>;
-    return PlaytimeCampaignsResponse(
-      campaigns: (result[0]! as List<Object?>).cast<PlaytimeCampaign?>(),
-    );
-  }
-
-  @override
-  // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  bool operator ==(Object other) {
-    if (other is! PlaytimeCampaignsResponse || other.runtimeType != runtimeType) {
-      return false;
-    }
-    if (identical(this, other)) {
-      return true;
-    }
-    return _deepEquals(campaigns, other.campaigns);
-  }
-
-  @override
-  // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
-}
-
-/// Permissions granted by the user.
-/// @basicnodoc
-class PlaytimePermissions {
-  PlaytimePermissions({
-    required this.isTOSAccepted,
-    required this.isUsagePermissionAccepted,
-  });
-
-  /// Flag indicating whether the terms of service are accepted.
-  bool isTOSAccepted;
-
-  /// Flag indicating whether the usage permission is accepted.
-  bool isUsagePermissionAccepted;
-
-  List<Object?> _toList() {
-    return <Object?>[
-      isTOSAccepted,
-      isUsagePermissionAccepted,
-    ];
-  }
-
-  Object encode() {
-    return _toList();  }
-
-  static PlaytimePermissions decode(Object result) {
-    result as List<Object?>;
-    return PlaytimePermissions(
-      isTOSAccepted: result[0]! as bool,
-      isUsagePermissionAccepted: result[1]! as bool,
-    );
-  }
-
-  @override
-  // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  bool operator ==(Object other) {
-    if (other is! PlaytimePermissions || other.runtimeType != runtimeType) {
-      return false;
-    }
-    if (identical(this, other)) {
-      return true;
-    }
-    return _deepEquals(isTOSAccepted, other.isTOSAccepted) && _deepEquals(isUsagePermissionAccepted, other.isUsagePermissionAccepted);
-  }
-
-  @override
-  // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
-}
-
-/// SDK response containing permissions.
-/// @basicnodoc
-class PlaytimePermissionsResponse {
-  PlaytimePermissionsResponse({
-    required this.permissions,
-  });
-
-  /// Permissions granted by the user.
-  PlaytimePermissions permissions;
-
-  List<Object?> _toList() {
-    return <Object?>[
-      permissions,
-    ];
-  }
-
-  Object encode() {
-    return _toList();  }
-
-  static PlaytimePermissionsResponse decode(Object result) {
-    result as List<Object?>;
-    return PlaytimePermissionsResponse(
-      permissions: result[0]! as PlaytimePermissions,
-    );
-  }
-
-  @override
-  // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  bool operator ==(Object other) {
-    if (other is! PlaytimePermissionsResponse || other.runtimeType != runtimeType) {
-      return false;
-    }
-    if (identical(this, other)) {
-      return true;
-    }
-    return _deepEquals(permissions, other.permissions);
-  }
-
-  @override
-  // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
-}
-
 
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
@@ -1425,59 +1829,92 @@ class _PigeonCodec extends StandardMessageCodec {
     if (value is int) {
       buffer.putUint8(4);
       buffer.putInt64(value);
-    }    else if (value is PlaytimeExtensions) {
+    }    else if (value is PlaytimeGender) {
       buffer.putUint8(129);
-      writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeOptions) {
+      writeValue(buffer, value.index);
+    }    else if (value is PlaytimeCampaignsState) {
       buffer.putUint8(130);
-      writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeStatusDetails) {
+      writeValue(buffer, value.index);
+    }    else if (value is PlaytimeCampaignStatus) {
       buffer.putUint8(131);
-      writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeStatus) {
+      writeValue(buffer, value.index);
+    }    else if (value is PlaytimeImpressionType) {
       buffer.putUint8(132);
-      writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeParams) {
+      writeValue(buffer, value.index);
+    }    else if (value is TosConsentAction) {
       buffer.putUint8(133);
-      writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeUserProfile) {
+      writeValue(buffer, value.index);
+    }    else if (value is CatalogPlacement) {
       buffer.putUint8(134);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeRewardAction) {
+    }    else if (value is AppCategory) {
       buffer.putUint8(135);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimePromotion) {
+    }    else if (value is PlaytimeExtensions) {
       buffer.putUint8(136);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeMedia) {
+    }    else if (value is InitOptions) {
       buffer.putUint8(137);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeEventConfig) {
+    }    else if (value is CatalogOptions) {
       buffer.putUint8(138);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeCashbackConfig) {
+    }    else if (value is PlaytimeUserProfile) {
       buffer.putUint8(139);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeCashbackReward) {
+    }    else if (value is PlaytimeEvent) {
       buffer.putUint8(140);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeCashbackRewardEvent) {
+    }    else if (value is PlaytimeStatus) {
       buffer.putUint8(141);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeRewardActionMultiplier) {
+    }    else if (value is PlaytimeStatusDetails) {
       buffer.putUint8(142);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeCampaign) {
+    }    else if (value is PlaytimeMetadata) {
       buffer.putUint8(143);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeCampaignsResponse) {
+    }    else if (value is StudioPlacement) {
       buffer.putUint8(144);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimePermissions) {
+    }    else if (value is DisplayFormat) {
       buffer.putUint8(145);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimePermissionsResponse) {
+    }    else if (value is CampaignOptions) {
       buffer.putUint8(146);
+      writeValue(buffer, value.encode());
+    }    else if (value is InstalledCampaignOptions) {
+      buffer.putUint8(147);
+      writeValue(buffer, value.encode());
+    }    else if (value is PlaytimeCampaignsResponse) {
+      buffer.putUint8(148);
+      writeValue(buffer, value.encode());
+    }    else if (value is PlaytimeCampaign) {
+      buffer.putUint8(149);
+      writeValue(buffer, value.encode());
+    }    else if (value is PlaytimeMedia) {
+      buffer.putUint8(150);
+      writeValue(buffer, value.encode());
+    }    else if (value is PlaytimePromotion) {
+      buffer.putUint8(151);
+      writeValue(buffer, value.encode());
+    }    else if (value is PlaytimeEventConfig) {
+      buffer.putUint8(152);
+      writeValue(buffer, value.encode());
+    }    else if (value is PlaytimeRewardAction) {
+      buffer.putUint8(153);
+      writeValue(buffer, value.encode());
+    }    else if (value is PlaytimeRewardActionMultiplier) {
+      buffer.putUint8(154);
+      writeValue(buffer, value.encode());
+    }    else if (value is PlaytimeCashbackConfig) {
+      buffer.putUint8(155);
+      writeValue(buffer, value.encode());
+    }    else if (value is PlaytimeCashbackReward) {
+      buffer.putUint8(156);
+      writeValue(buffer, value.encode());
+    }    else if (value is PlaytimeCashbackRewardEvent) {
+      buffer.putUint8(157);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -1488,46 +1925,75 @@ class _PigeonCodec extends StandardMessageCodec {
   Object? readValueOfType(int type, ReadBuffer buffer) {
     switch (type) {
       case 129:
-        return PlaytimeExtensions.decode(readValue(buffer)!);
+        final value = readValue(buffer) as int?;
+        return value == null ? null : PlaytimeGender.values[value];
       case 130:
-        return PlaytimeOptions.decode(readValue(buffer)!);
+        final value = readValue(buffer) as int?;
+        return value == null ? null : PlaytimeCampaignsState.values[value];
       case 131:
-        return PlaytimeStatusDetails.decode(readValue(buffer)!);
+        final value = readValue(buffer) as int?;
+        return value == null ? null : PlaytimeCampaignStatus.values[value];
       case 132:
-        return PlaytimeStatus.decode(readValue(buffer)!);
+        final value = readValue(buffer) as int?;
+        return value == null ? null : PlaytimeImpressionType.values[value];
       case 133:
-        return PlaytimeParams.decode(readValue(buffer)!);
+        final value = readValue(buffer) as int?;
+        return value == null ? null : TosConsentAction.values[value];
       case 134:
-        return PlaytimeUserProfile.decode(readValue(buffer)!);
+        return CatalogPlacement.decode(readValue(buffer)!);
       case 135:
-        return PlaytimeRewardAction.decode(readValue(buffer)!);
+        return AppCategory.decode(readValue(buffer)!);
       case 136:
-        return PlaytimePromotion.decode(readValue(buffer)!);
+        return PlaytimeExtensions.decode(readValue(buffer)!);
       case 137:
-        return PlaytimeMedia.decode(readValue(buffer)!);
+        return InitOptions.decode(readValue(buffer)!);
       case 138:
-        return PlaytimeEventConfig.decode(readValue(buffer)!);
+        return CatalogOptions.decode(readValue(buffer)!);
       case 139:
-        return PlaytimeCashbackConfig.decode(readValue(buffer)!);
+        return PlaytimeUserProfile.decode(readValue(buffer)!);
       case 140:
-        return PlaytimeCashbackReward.decode(readValue(buffer)!);
+        return PlaytimeEvent.decode(readValue(buffer)!);
       case 141:
-        return PlaytimeCashbackRewardEvent.decode(readValue(buffer)!);
+        return PlaytimeStatus.decode(readValue(buffer)!);
       case 142:
-        return PlaytimeRewardActionMultiplier.decode(readValue(buffer)!);
+        return PlaytimeStatusDetails.decode(readValue(buffer)!);
       case 143:
-        return PlaytimeCampaign.decode(readValue(buffer)!);
+        return PlaytimeMetadata.decode(readValue(buffer)!);
       case 144:
-        return PlaytimeCampaignsResponse.decode(readValue(buffer)!);
+        return StudioPlacement.decode(readValue(buffer)!);
       case 145:
-        return PlaytimePermissions.decode(readValue(buffer)!);
+        return DisplayFormat.decode(readValue(buffer)!);
       case 146:
-        return PlaytimePermissionsResponse.decode(readValue(buffer)!);
+        return CampaignOptions.decode(readValue(buffer)!);
+      case 147:
+        return InstalledCampaignOptions.decode(readValue(buffer)!);
+      case 148:
+        return PlaytimeCampaignsResponse.decode(readValue(buffer)!);
+      case 149:
+        return PlaytimeCampaign.decode(readValue(buffer)!);
+      case 150:
+        return PlaytimeMedia.decode(readValue(buffer)!);
+      case 151:
+        return PlaytimePromotion.decode(readValue(buffer)!);
+      case 152:
+        return PlaytimeEventConfig.decode(readValue(buffer)!);
+      case 153:
+        return PlaytimeRewardAction.decode(readValue(buffer)!);
+      case 154:
+        return PlaytimeRewardActionMultiplier.decode(readValue(buffer)!);
+      case 155:
+        return PlaytimeCashbackConfig.decode(readValue(buffer)!);
+      case 156:
+        return PlaytimeCashbackReward.decode(readValue(buffer)!);
+      case 157:
+        return PlaytimeCashbackRewardEvent.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
   }
 }
+
+const StandardMethodCodec pigeonMethodCodec = StandardMethodCodec(_PigeonCodec());
 
 /// The entry point of adjoe Playtime SDK.
 class Playtime {
@@ -1543,18 +2009,16 @@ class Playtime {
 
   final String pigeonVar_messageChannelSuffix;
 
-  /// Initializes the Playtime SDK.
-  /// You must initialize the Playtime SDK before you can use any of its features.
-  /// The initialization will run asynchronously in the background
-  /// Supported only on Android
-  Future<void> init(String apiKey, PlaytimeOptions? options) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.Playtime.init$pigeonVar_messageChannelSuffix';
+  /// Initialize the Playtime SDK with the given options.
+  /// Supported on both Android and iOS.
+  Future<void> initPlaytime(InitOptions options) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.Playtime.initPlaytime$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[apiKey, options]);
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[options]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(
@@ -1565,16 +2029,16 @@ class Playtime {
     ;
   }
 
-  /// Opens a new activity that shows catalog.
-  /// Supported only on Android.
-  Future<void> showCatalog(PlaytimeParams? params) async {
+  /// Shows the Playtime catalog.
+  /// Supported on both Android and iOS.
+  Future<void> showCatalog([CatalogOptions? catalogOptions]) async {
     final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.Playtime.showCatalog$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[params]);
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[catalogOptions]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(
@@ -1585,215 +2049,8 @@ class Playtime {
     ;
   }
 
-  /// Opens a new activity that shows catalog.
+  /// Get the status of the SDK.
   /// Supported on both Android and iOS.
-  Future<void> showCatalogWithOptions(PlaytimeOptions options) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.Playtime.showCatalogWithOptions$pigeonVar_messageChannelSuffix';
-    final pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[options]);
-    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
-
-    _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
-  }
-
-  /// Sets the Playtime options.
-  /// Supported on both Android and iOS.
-  Future<void> setPlaytimeOptions(PlaytimeOptions options) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.Playtime.setPlaytimeOptions$pigeonVar_messageChannelSuffix';
-    final pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[options]);
-    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
-
-    _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
-  }
-
-  /// Sets the User-Acquisition (UA) parameters.
-  /// Supported only on Android.
-  Future<void> setUAParams(PlaytimeParams params) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.Playtime.setUAParams$pigeonVar_messageChannelSuffix';
-    final pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[params]);
-    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
-
-    _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
-  }
-
-  /// Returns the version code of the Playtime SDK.
-  /// Supported only on Android.
-  Future<String> getVersion() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.Playtime.getVersion$pigeonVar_messageChannelSuffix';
-    final pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
-    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
-
-    final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: false,
-    )
-    ;
-    return pigeonVar_replyValue! as String;
-  }
-
-  /// Returns the version name of the Playtime SDK.
-  /// Supported only on Android.
-  Future<String> getVersionName() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.Playtime.getVersionName$pigeonVar_messageChannelSuffix';
-    final pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
-    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
-
-    final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: false,
-    )
-    ;
-    return pigeonVar_replyValue! as String;
-  }
-
-  /// Checks whether the Playtime SDK is initialized.
-  /// Supported only on Android.
-  Future<bool> isInitialized() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.Playtime.isInitialized$pigeonVar_messageChannelSuffix';
-    final pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
-    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
-
-    final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: false,
-    )
-    ;
-    return pigeonVar_replyValue! as bool;
-  }
-
-  /// Checks whether the user has accepted the Playtime Terms of Service (TOS).
-  /// Supported only on Android.
-  Future<bool> hasAcceptedTOS() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.Playtime.hasAcceptedTOS$pigeonVar_messageChannelSuffix';
-    final pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
-    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
-
-    final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: false,
-    )
-    ;
-    return pigeonVar_replyValue! as bool;
-  }
-
-  /// Checks whether the user has given access to the usage statistics.
-  /// Supported only on Android.
-  Future<bool> hasAcceptedUsagePermission() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.Playtime.hasAcceptedUsagePermission$pigeonVar_messageChannelSuffix';
-    final pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
-    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
-
-    final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: false,
-    )
-    ;
-    return pigeonVar_replyValue! as bool;
-  }
-
-  /// Returns the unique ID of the user by which he is identified within the Playtime services.
-  /// Supported only on Android.
-  Future<String?> getUserId() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.Playtime.getUserId$pigeonVar_messageChannelSuffix';
-    final pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
-    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
-
-    final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
-    return pigeonVar_replyValue as String?;
-  }
-
-  /// Sends a user event to Playtime.
-  /// These events help to improve the accuracy of the app recommendations for the user.
-  /// Supported only on Android.
-  Future<void> sendEvent(int event, String extra, PlaytimeParams? params) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.Playtime.sendEvent$pigeonVar_messageChannelSuffix';
-    final pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[event, extra, params]);
-    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
-
-    _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
-  }
-
-  /// Recieve the status of SDK.
-  /// Supported on Android and iOS.
   Future<PlaytimeStatus> getStatus() async {
     final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.Playtime.getStatus$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
@@ -1814,6 +2071,7 @@ class Playtime {
   }
 
   /// Deinitialize the SDK. This releases the resources taken up by internal components.
+  /// Supported on both Android and iOS.
   Future<void> teardown() async {
     final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.Playtime.teardown$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
@@ -1822,6 +2080,69 @@ class Playtime {
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
+  }
+
+  /// Register a listener to receive Playtime SDK events.
+  ///
+  /// Events themselves are delivered over the [PlaytimeEvents] event channel; this
+  /// method tells the native SDK to start forwarding its events onto that channel.
+  /// Supported on both Android and iOS.
+  Future<void> addEventListener() async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.Playtime.addEventListener$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
+  }
+
+  /// Remove the currently registered Playtime SDK event listener.
+  /// Supported on both Android and iOS.
+  Future<void> removeEventListener() async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.Playtime.removeEventListener$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
+  }
+
+  /// Records that a catalog entry point became visible. This mandatory event is used for analytics to understand conversion rates from catalog visibility to catalog opens. Pass the placement for the entry point that is visible; use different placements when the app has multiple catalog entry points.
+  /// Supported on both Android and iOS.
+  Future<void> executeImpressionEvent(CatalogPlacement catalogPlacement) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.Playtime.executeImpressionEvent$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[catalogPlacement]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(
@@ -1849,16 +2170,37 @@ class PlaytimeStudio {
 
   final String pigeonVar_messageChannelSuffix;
 
+  /// Update the user's consent to the Playtime terms of service, either accepting or
+  /// withdrawing it.
+  /// Supported on both Android and iOS.
+  Future<void> updateTosConsent(TosConsentAction action) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.updateTosConsent$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[action]);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
+  }
+
   /// Get the list of offers that a user can install.
   /// Supported on both Android and iOS.
-  Future<PlaytimeCampaignsResponse> getCampaigns(PlaytimeOptions options) async {
+  Future<PlaytimeCampaignsResponse> getCampaigns([CampaignOptions? campaignOptions]) async {
     final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.getCampaigns$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[options]);
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[campaignOptions]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
@@ -1870,9 +2212,31 @@ class PlaytimeStudio {
     return pigeonVar_replyValue! as PlaytimeCampaignsResponse;
   }
 
-  /// Get the list of apps the user has already installed and that will contain the progress the user has made already.
+  /// Get offer details for the specified tokens.
   /// Supported on both Android and iOS.
-  Future<PlaytimeCampaignsResponse> getInstalledCampaigns(PlaytimeOptions options) async {
+  Future<PlaytimeCampaignsResponse> getOfferDetails(List<String?> tokens, [CampaignOptions? campaignOptions]) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.getOfferDetails$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[tokens, campaignOptions]);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: false,
+    )
+    ;
+    return pigeonVar_replyValue! as PlaytimeCampaignsResponse;
+  }
+
+  /// Get the list of apps the user has already installed and that will contain the progress
+  /// the user has made already.
+  /// Supported on both Android and iOS.
+  Future<PlaytimeCampaignsResponse> getInstalledCampaigns([InstalledCampaignOptions? options]) async {
     final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.getInstalledCampaigns$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
@@ -1893,14 +2257,14 @@ class PlaytimeStudio {
 
   /// Use this method to forward the user to the store.
   /// Supported on both Android and iOS.
-  Future<void> openInStore(PlaytimeCampaign campaign) async {
+  Future<void> openInStore(PlaytimeCampaign campaign, bool useInlineInstall) async {
     final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.openInStore$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[campaign]);
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[campaign, useInlineInstall]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(
@@ -1911,7 +2275,7 @@ class PlaytimeStudio {
     ;
   }
 
-  /// Use this method to forward the user to the app.
+  /// Use this method to open installed application.
   /// Supported on both Android and iOS.
   Future<void> openInstalledCampaign(PlaytimeCampaign campaign) async {
     final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.openInstalledCampaign$pigeonVar_messageChannelSuffix';
@@ -1931,151 +2295,8 @@ class PlaytimeStudio {
     ;
   }
 
-  /// Get user's permissions.
-  /// Supported only on Android.
-  Future<PlaytimePermissionsResponse> getPermissions() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.getPermissions$pigeonVar_messageChannelSuffix';
-    final pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
-    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
-
-    final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: false,
-    )
-    ;
-    return pigeonVar_replyValue! as PlaytimePermissionsResponse;
-  }
-
-  /// Show the prompt requesting user's permissions.
-  /// Supported only on Android.
-  Future<PlaytimePermissionsResponse> showPermissionsPrompt() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.showPermissionsPrompt$pigeonVar_messageChannelSuffix';
-    final pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
-    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
-
-    final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: false,
-    )
-    ;
-    return pigeonVar_replyValue! as PlaytimePermissionsResponse;
-  }
-
-  /// Opens the register popup for rewards connect.
-  /// Supported for both android and iOS.
-  Future<void> registerRewardsConnect() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.registerRewardsConnect$pigeonVar_messageChannelSuffix';
-    final pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
-    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
-
-    _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
-  }
-
-  /// Resets the rewards connect registration.
-  /// Supported for both android and iOS.
-  Future<void> resetRewardsConnect() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.resetRewardsConnect$pigeonVar_messageChannelSuffix';
-    final pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
-    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
-
-    _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
-  }
-
-  /// Use this method to deeplink installed apps
-  /// Supported for both android and iOS.
-  Future<void> showInstalledApps() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.showInstalledApps$pigeonVar_messageChannelSuffix';
-    final pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
-    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
-
-    _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
-  }
-
-  /// Use this method to deeplink app details
-  /// Supported for both android and iOS.
-  Future<void> showAppDetails(PlaytimeCampaign campaign) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.showAppDetails$pigeonVar_messageChannelSuffix';
-    final pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[campaign]);
-    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
-
-    _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
-  }
-
-  /// Use this method to deeplink app details with token
-  /// Supported for both android and iOS.
-  Future<void> showAppDetailsWithToken(String token, String campaignAppId) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.showAppDetailsWithToken$pigeonVar_messageChannelSuffix';
-    final pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[token, campaignAppId]);
-    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
-
-    _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
-  }
-
-  /// Use this method to forward the open chatbot
-  /// Supported for both android and iOS.
-  /// @campaign The campaign you want to open
+  /// Use this method to open chatbot.
+  /// Supported on both Android and iOS.
   Future<void> openChatbot(PlaytimeCampaign? campaign) async {
     final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.openChatbot$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
@@ -2094,20 +2315,16 @@ class PlaytimeStudio {
     ;
   }
 
-  /// Execute a engagement request for the given campaign.
-  /// This method tracks view execution locally and ensures only one view tracking request
-  /// is sent to the backend per campaign within a 30-minute window.
-  /// Supported for both android and iOS.
-  /// @campaign The campaign you want to open
-  /// @engagementType The type of engagement you want to execute, values are "default" | "engaged".
-  Future<void> executeEngagement(PlaytimeCampaign campaign, String engagementType) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.executeEngagement$pigeonVar_messageChannelSuffix';
+  /// Use this method to reset rewards connect.
+  /// Supported on both Android and iOS.
+  Future<void> resetRewardsConnect() async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.resetRewardsConnect$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[campaign, engagementType]);
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(
@@ -2118,20 +2335,150 @@ class PlaytimeStudio {
     ;
   }
 
-  /// Execute a engagement request for the given campaign.
-  /// This method tracks view execution locally and ensures only one view tracking request
-  /// is sent to the backend per campaign within a 30-minute window.
-  /// @param appID App ID of the campaign.
-  /// @param token Token of the campaign.
+  /// Register the user with Playtime. The RewardsConnect sheet will be displayed to the
+  /// user and, on pressing Connect, the following scenarios are possible:
+  /// 1. If the user is not registered with Playtime, the user will be prompted to register
+  /// a new passkey. This passkey will be stored on the user's device (and may be synced to
+  /// iCloud) and associated with the user's Adjoe account.
+  /// 2. If the user is already registered with Playtime, but the SDK is not aware of it
+  /// (e.g. when the app was deleted and reinstalled), the user will be prompted to log in
+  /// with the passkey stored on the device. If the passkey is not present, the will be
+  /// prompted to register a new passkey.
+  /// 3. The user has either registered the passkey or logged in successfully. Any subsequent
+  /// call will return without error.
   /// Supported on both Android and iOS.
-  Future<void> executeEngagementWithToken(String appID, String token) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.executeEngagementWithToken$pigeonVar_messageChannelSuffix';
+  Future<void> registerRewardsConnect() async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.registerRewardsConnect$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[appID, token]);
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
+  }
+
+  /// Execute an impression request for the given campaign.
+  /// This method tracks view execution locally and ensures only one view tracking request
+  /// is sent to the backend per campaign within a 30-minute window.
+  /// Supported on both Android and iOS.
+  Future<void> executeCampaignImpression(PlaytimeCampaign campaign, [PlaytimeImpressionType? impressionType]) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.executeCampaignImpression$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[campaign, impressionType]);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
+  }
+
+  /// Execute an impression request for the given offer.
+  /// This method tracks view execution locally and ensures only one view tracking request
+  /// is sent to the backend per campaign within a 30-minute window.
+  /// Supported on both Android and iOS.
+  Future<void> executeOfferImpression(String token, String appID) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.executeOfferImpression$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[token, appID]);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
+  }
+
+  /// Use this method to deeplink campaign details.
+  /// Supported on both Android and iOS.
+  Future<void> showCampaignDetails(PlaytimeCampaign campaign) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.showCampaignDetails$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[campaign]);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
+  }
+
+  /// Use this method to deeplink offer details using an access token and app ID.
+  /// Supported on both Android and iOS.
+  Future<void> showOfferDetails(String token, String appID) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.showOfferDetails$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[token, appID]);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
+  }
+
+  /// Use this method to deeplink installed campaigns.
+  /// Supported on both Android and iOS.
+  Future<void> showInstalledCampaigns() async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.showInstalledCampaigns$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
+  }
+
+  /// Show the prompt requesting user's permissions.
+  /// Supported only on Android. Calling it on iOS fails as unsupported.
+  Future<void> showPermissionsPrompt() async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.showPermissionsPrompt$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(
@@ -2142,3 +2489,20 @@ class PlaytimeStudio {
     ;
   }
 }
+
+/// Streams dynamically configured SDK events from the native SDK to Dart.
+///
+/// The host [Playtime.addEventListener] starts the native delivery; each
+/// [PlaytimeEvent] the SDK emits is forwarded over this channel and surfaced to
+/// publishers through the hand-written `PlaytimeEventListener.didReceive` callback.
+Stream<PlaytimeEvent> streamEvents( {String instanceName = ''}) {
+  if (instanceName.isNotEmpty) {
+    instanceName = '.$instanceName';
+  }
+  final EventChannel streamEventsChannel =
+      EventChannel('dev.flutter.pigeon.adjoe.PlaytimeEvents.streamEvents$instanceName', pigeonMethodCodec);
+  return streamEventsChannel.receiveBroadcastStream().map((dynamic event) {
+    return event as PlaytimeEvent;
+  });
+}
+    

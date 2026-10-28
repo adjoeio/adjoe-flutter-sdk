@@ -50,6 +50,10 @@ class SdkPlugin :
         playtimeStudioImpl = PlaytimeStudioImpl()
         Playtime.setUp(flutterPluginBinding.binaryMessenger, playtimeImpl)
         PlaytimeStudio.setUp(flutterPluginBinding.binaryMessenger, playtimeStudioImpl)
+        StreamEventsStreamHandler.register(
+            flutterPluginBinding.binaryMessenger,
+            PlaytimeEventForwarder,
+        )
     }
 
     override fun onMethodCall(

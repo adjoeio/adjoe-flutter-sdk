@@ -1,17 +1,16 @@
 package io.adjoe.flutter.sdk
 
 import android.app.Activity
-import io.adjoe.sdk.connect.RewardsConnectRegistrationFailureException
+import io.adjoe.sdk.PlaytimeException
 import io.adjoe.sdk.connect.RewardsConnectRegistrationListener
-import io.adjoe.sdk.connect.RewardsConnectResetFailureException
 import io.adjoe.sdk.connect.RewardsConnectResetListener
 import io.adjoe.sdk.studio.PlaytimeCampaignsListener
+import io.adjoe.sdk.studio.PlaytimeDeeplinkListener
+import io.adjoe.sdk.studio.PlaytimeExecuteImpressionListener
 import io.adjoe.sdk.studio.PlaytimeOpenInstalledCampaignListener
 import io.adjoe.sdk.studio.PlaytimeOpenStoreListener
 import io.adjoe.sdk.studio.PlaytimePermissionsListener
-import io.adjoe.sdk.studio.PlaytimeResponseError
-import io.adjoe.sdk.studio.PlaytimeEngagementType
-import io.adjoe.sdk.studio.PlaytimeExecuteEngagementListener
+import io.adjoe.sdk.studio.PlaytimeTosListener
 
 internal object CampaignsUtil {
     fun mapPlaytimeCampaignsResponse(
@@ -42,8 +41,8 @@ internal object CampaignsUtil {
             appName = playtimeCampaign.appName,
             appDescription = playtimeCampaign.appDescription,
             appID = playtimeCampaign.appID,
-            appBundleID = null, // null because is used only in iOS
-            appStoreID = null, // null because is used only in iOS
+            appBundleID = null,
+            token = playtimeCampaign.token,
             installedAt = playtimeCampaign.installedAt,
             uninstalledAt = playtimeCampaign.uninstalledAt,
             rewardingExpiresAfter = playtimeCampaign.rewardingExpiresAfter?.toLong(),
@@ -59,14 +58,14 @@ internal object CampaignsUtil {
             promotion = mapPlaytimePromotion(playtimeCampaign.promotion),
             eventConfig = mapPlaytimeEventConfig(playtimeCampaign.eventConfig),
             isCompleted = playtimeCampaign.isCompleted,
-            status = mapPlaytimeStatus(playtimeCampaign.status),
+            status = mapPlaytimeCampaignStatus(playtimeCampaign.status),
             isCpa = playtimeCampaign.isCpa,
             cpa = playtimeCampaign.cpa.toDouble()
         )
     }
 
     private fun mapPlaytimeEventConfig(
-        playtimeEventConfig: io.adjoe.sdk.studio.PlaytimeCampaign.EventConfig?
+        playtimeEventConfig: io.adjoe.sdk.studio.PlaytimeEventConfig?
     ): PlaytimeEventConfig? {
         playtimeEventConfig?.let {
             return PlaytimeEventConfig(
@@ -90,19 +89,19 @@ internal object CampaignsUtil {
         return null
     }
 
-     private fun mapPlaytimeStatus(
-       status: io.adjoe.sdk.studio.PlaytimeCampaign.PlaytimeCampaignStatus
-    ): String {
+    private fun mapPlaytimeCampaignStatus(
+        status: io.adjoe.sdk.studio.PlaytimeCampaignStatus
+    ): PlaytimeCampaignStatus {
         return when (status) {
-            io.adjoe.sdk.studio.PlaytimeCampaign.PlaytimeCampaignStatus.PENDING -> "PENDING"
-            io.adjoe.sdk.studio.PlaytimeCampaign.PlaytimeCampaignStatus.INSTALLED -> "INSTALLED"
-            io.adjoe.sdk.studio.PlaytimeCampaign.PlaytimeCampaignStatus.FAILED -> "FAILED"
-            else -> "AVAILABLE"
+            io.adjoe.sdk.studio.PlaytimeCampaignStatus.PENDING -> PlaytimeCampaignStatus.PENDING
+            io.adjoe.sdk.studio.PlaytimeCampaignStatus.INSTALLED -> PlaytimeCampaignStatus.INSTALLED
+            io.adjoe.sdk.studio.PlaytimeCampaignStatus.FAILED -> PlaytimeCampaignStatus.FAILED
+            else -> PlaytimeCampaignStatus.AVAILABLE
         }
     }
 
     private fun mapPlaytimeMultipliersActions(
-        playtimeMultipliersActions: List<io.adjoe.sdk.studio.PlaytimeCampaign.PlaytimeRewardActionMultiplier>
+        playtimeMultipliersActions: List<io.adjoe.sdk.studio.PlaytimeRewardActionMultiplier>
     ): List<PlaytimeRewardActionMultiplier> {
         val multipliersActions: MutableList<PlaytimeRewardActionMultiplier> = mutableListOf()
 
@@ -121,7 +120,7 @@ internal object CampaignsUtil {
     }
 
     private fun mapPlaytimeCashbackConfig(
-        playtimeCashbackConfig: io.adjoe.sdk.studio.PlaytimeCampaign.PlaytimeCashbackConfig?
+        playtimeCashbackConfig: io.adjoe.sdk.studio.PlaytimeCashbackConfig?
     ): PlaytimeCashbackConfig? {
         playtimeCashbackConfig?.let {
             return PlaytimeCashbackConfig(
@@ -138,7 +137,7 @@ internal object CampaignsUtil {
     }
 
     private fun mapPlaytimeCashbackRewards(
-        cashbackRewards: io.adjoe.sdk.studio.PlaytimeCampaign.PlaytimeCashbackReward?
+        cashbackRewards: io.adjoe.sdk.studio.PlaytimeCashbackReward?
     ): PlaytimeCashbackReward? {
         cashbackRewards?.let {
             return PlaytimeCashbackReward(
@@ -151,7 +150,7 @@ internal object CampaignsUtil {
     }
 
     private fun mapPlaytimeCashbackRewardEvents(
-        playtimeEvents: List<io.adjoe.sdk.studio.PlaytimeCampaign.PlaytimeCashbackRewardEvent>
+        playtimeEvents: List<io.adjoe.sdk.studio.PlaytimeCashbackRewardEvent>
     ): List<PlaytimeCashbackRewardEvent?>? {
         val events: MutableList<PlaytimeCashbackRewardEvent> = mutableListOf()
 
@@ -167,7 +166,7 @@ internal object CampaignsUtil {
     }
 
     private fun mapPlaytimeRewardActions(
-        playtimeRewardActions: List<io.adjoe.sdk.studio.PlaytimeCampaign.PlaytimeRewardAction>
+        playtimeRewardActions: List<io.adjoe.sdk.studio.PlaytimeRewardAction>
     ): List<PlaytimeRewardAction?> {
         val rewardActions: MutableList<PlaytimeRewardAction> = mutableListOf()
         playtimeRewardActions.forEach {
@@ -193,7 +192,7 @@ internal object CampaignsUtil {
     }
 
     private fun mapPlaytimePromotion(
-        playtimePromotion: io.adjoe.sdk.studio.PlaytimeCampaign.PlaytimePromotion?
+        playtimePromotion: io.adjoe.sdk.studio.PlaytimePromotion?
     ): PlaytimePromotion? {
         playtimePromotion?.let {
             return PlaytimePromotion(
@@ -210,7 +209,7 @@ internal object CampaignsUtil {
     }
 
     private fun mapPlaytimeMedia(
-        playtimeMedia: io.adjoe.sdk.studio.PlaytimeCampaign.PlaytimeMedia?
+        playtimeMedia: io.adjoe.sdk.studio.PlaytimeMedia?
     ): PlaytimeMedia? {
         playtimeMedia?.let {
             return PlaytimeMedia(
@@ -228,86 +227,90 @@ class PlaytimeStudioImpl() : PlaytimeStudio {
     private val playtimeCampaignsCache = HashMap<String, io.adjoe.sdk.studio.PlaytimeCampaign>()
 
     fun setActivity(activity: Activity?) {
-       this.activity = activity
+        this.activity = activity
+    }
+
+    override fun updateTosConsent(
+        action: TosConsentAction,
+        callback: (Result<Unit>) -> Unit
+    ) {
+        val sdkAction = when (action) {
+            TosConsentAction.ACCEPT -> io.adjoe.sdk.studio.TosConsentAction.ACCEPT
+            TosConsentAction.WITHDRAW -> io.adjoe.sdk.studio.TosConsentAction.WITHDRAW
+        }
+
+        io.adjoe.sdk.studio.PlaytimeStudio.updateTosConsent(
+            sdkAction,
+            object : PlaytimeTosListener {
+                override fun onUpdated() {
+                    callback(Result.success(Unit))
+                }
+
+                override fun onError(error: PlaytimeException) {
+                    callback(Result.failure(ErrorsUtil.toFlutterError(ErrorsUtil.toPlaytimeException(error))))
+                }
+            }
+        )
     }
 
     override fun getCampaigns(
-        options: PlaytimeOptions,
+        campaignOptions: CampaignOptions?,
         callback: (Result<PlaytimeCampaignsResponse>) -> Unit
     ) {
-        val currentActivity = activity ?: run {
-            return callback(Result.failure(ErrorsUtil.getActivityIsNullError()))
-        }
+        io.adjoe.sdk.studio.PlaytimeStudio.getCampaigns(
+            OptionsUtil.mapCampaignOptions(campaignOptions),
+            createCampaignsListener(callback)
+        )
+    }
 
-       if (options.tokens != null && options.tokens.isNotEmpty()) {
-           val tokens: MutableList<String> = mutableListOf()
-
-           options.tokens.forEach { token ->
-               if (token != null) {
-                   tokens.add(token)
-               }
-           }
-
-           io.adjoe.sdk.studio.PlaytimeStudio.getCampaigns(
-               currentActivity,
-               tokens,
-               OptionsUtil.mapOptions(options),
-               createCampaignsListener(callback)
-           )
-       } else {
-           io.adjoe.sdk.studio.PlaytimeStudio.getCampaigns(
-               currentActivity,
-               OptionsUtil.mapOptions(options),
-               createCampaignsListener(callback)
-           )
-       }
+    override fun getOfferDetails(
+        tokens: List<String?>,
+        campaignOptions: CampaignOptions?,
+        callback: (Result<PlaytimeCampaignsResponse>) -> Unit
+    ) {
+        io.adjoe.sdk.studio.PlaytimeStudio.getOfferDetails(
+            tokens.filterNotNull(),
+            OptionsUtil.mapCampaignOptions(campaignOptions),
+            createCampaignsListener(callback)
+        )
     }
 
     override fun getInstalledCampaigns(
-        options: PlaytimeOptions,
+        options: InstalledCampaignOptions?,
         callback: (Result<PlaytimeCampaignsResponse>) -> Unit
     ) {
-        val currentActivity = activity ?: run {
-            return callback(Result.failure(ErrorsUtil.getActivityIsNullError()))
-        }
-
         io.adjoe.sdk.studio.PlaytimeStudio.getInstalledCampaigns(
-            currentActivity,
-            OptionsUtil.mapOptions(options),
+            OptionsUtil.mapInstalledCampaignOptions(options),
             createCampaignsListener(callback)
         )
     }
 
     override fun openInStore(
         campaign: PlaytimeCampaign,
+        useInlineInstall: Boolean,
         callback: (Result<Unit>) -> Unit
     ) {
-        val playtimeCampaign = playtimeCampaignsCache[campaign.campaignUUID]
-
-        if (playtimeCampaign == null) {
-            return callback(Result.failure(
-                ErrorsUtil.getFunctionError("openInStore", "campaign is null")
-            ))
-        }
-
-        val currentActivity = activity ?: run {
-            return callback(Result.failure(ErrorsUtil.getActivityIsNullError()))
-        }
+        val playtimeCampaign = cachedCampaign(campaign, "openInStore", callback) ?: return
 
         io.adjoe.sdk.studio.PlaytimeStudio.openInStore(
-            currentActivity,
             playtimeCampaign,
+            useInlineInstall,
             object : PlaytimeOpenStoreListener {
                 override fun onAlreadyClicking() {
-                    callback(Result.failure(
-                        ErrorsUtil.getFunctionError("openInStore", "Request is already in progress")
-                    ))
+                    callback(
+                        Result.failure(
+                            ErrorsUtil.toFlutterError(
+                                ErrorsUtil.getFunctionError(
+                                    "openInStore",
+                                    "Request is already in progress"
+                                )
+                            )
+                        )
+                    )
                 }
 
-                override fun onError(error: PlaytimeResponseError?) {
-                    callback(Result.failure(
-                        ErrorsUtil.getFunctionError("openInStore", error?.error?.message)
-                    ))
+                override fun onError(error: PlaytimeException) {
+                    callback(Result.failure(ErrorsUtil.toFlutterError(ErrorsUtil.toPlaytimeException(error))))
                 }
 
                 override fun onFinished() {
@@ -321,331 +324,276 @@ class PlaytimeStudioImpl() : PlaytimeStudio {
         campaign: PlaytimeCampaign,
         callback: (Result<Unit>) -> Unit
     ) {
-        val playtimeCampaign = playtimeCampaignsCache[campaign.campaignUUID]
-
-        if (playtimeCampaign == null) {
-            return callback(Result.failure(
-                ErrorsUtil.getFunctionError("openInStore", "campaign is null")
-            ))
-        }
-
-        val currentActivity = activity ?: run {
-            return callback(Result.failure(ErrorsUtil.getActivityIsNullError()))
-        }
+        val playtimeCampaign =
+            cachedCampaign(campaign, "openInstalledCampaign", callback) ?: return
 
         io.adjoe.sdk.studio.PlaytimeStudio.openInstalledCampaign(
-            currentActivity,
             playtimeCampaign,
             object : PlaytimeOpenInstalledCampaignListener {
-                override fun onError(error: PlaytimeResponseError?) {
-                    callback(Result.failure(
-                        ErrorsUtil.getFunctionError("openInstalledCampaign", error?.error?.message)
-                    ))
+                override fun onOpened() {
+                    callback(Result.success(Unit))
                 }
 
-                override fun onOpened() {
-                    return callback(Result.success(Unit))
+                override fun onError(error: PlaytimeException) {
+                    callback(Result.failure(ErrorsUtil.toFlutterError(ErrorsUtil.toPlaytimeException(error))))
                 }
             }
         )
     }
 
-    override fun getPermissions(callback: (Result<PlaytimePermissionsResponse>) -> Unit) {
+    override fun openChatbot(
+        campaign: PlaytimeCampaign?,
+        callback: (Result<Unit>) -> Unit
+    ) {
         val currentActivity = activity ?: run {
-            return callback(Result.failure(ErrorsUtil.getActivityIsNullError()))
+            return callback(
+                Result.failure(ErrorsUtil.toFlutterError(ErrorsUtil.getActivityIsNullError()))
+            )
         }
 
-        io.adjoe.sdk.studio.PlaytimeStudio.getPermissions(
+        val playtimeCampaign = getCampaignFromCache(campaign)
+
+        io.adjoe.sdk.studio.PlaytimeStudio.openChatbot(
             currentActivity,
-            createPermissionsListener("getPermissions", callback)
+            playtimeCampaign,
+            createDeeplinkListener(callback)
         )
     }
 
-    override fun showPermissionsPrompt(callback: (Result<PlaytimePermissionsResponse>) -> Unit) {
-        val currentActivity = activity ?: run {
-            return callback(Result.failure(ErrorsUtil.getActivityIsNullError()))
-        }
+    override fun resetRewardsConnect(callback: (Result<Unit>) -> Unit) {
+        io.adjoe.sdk.studio.PlaytimeStudio.resetRewardsConnect(
+            object : RewardsConnectResetListener {
+                override fun onSuccess() {
+                    callback(Result.success(Unit))
+                }
 
-        io.adjoe.sdk.studio.PlaytimeStudio.showPermissionsPrompt(
-            currentActivity,
-            createPermissionsListener("showPermissionsPrompt", callback)
+                override fun onFailure(error: PlaytimeException) {
+                    callback(Result.failure(ErrorsUtil.toFlutterError(ErrorsUtil.toPlaytimeException(error))))
+                }
+            }
         )
     }
 
     override fun registerRewardsConnect(callback: (Result<Unit>) -> Unit) {
         val currentActivity = activity ?: run {
-            return callback(Result.failure(ErrorsUtil.getActivityIsNullError()))
+            return callback(
+                Result.failure(ErrorsUtil.toFlutterError(ErrorsUtil.getActivityIsNullError()))
+            )
         }
 
         io.adjoe.sdk.studio.PlaytimeStudio.registerRewardsConnect(
             currentActivity,
             object : RewardsConnectRegistrationListener {
-                override fun onFailure(error: RewardsConnectRegistrationFailureException) {
-                    callback(
-                        Result.failure(
-                            ErrorsUtil.getFunctionError("registerRewardsConnect", error.message)
-                        )
-                    )
-                }
-
                 override fun onSuccess() {
                     callback(Result.success(Unit))
                 }
-            }
-        )
-    }
 
-    override fun resetRewardsConnect(callback: (Result<Unit>) -> Unit) {
-        val currentActivity = activity ?: run {
-            return callback(Result.failure(ErrorsUtil.getActivityIsNullError()))
-        }
-
-        io.adjoe.sdk.studio.PlaytimeStudio.resetRewardsConnect(
-            currentActivity,
-            object : RewardsConnectResetListener {
-                override fun onFailure(error: RewardsConnectResetFailureException) {
-                    callback(
-                        Result.failure(
-                            ErrorsUtil.getFunctionError("registerRewardsConnect", error.message)
-                        )
-                    )
-                }
-
-                override fun onSuccess() {
-                    callback(Result.success(Unit))
+                override fun onFailure(error: PlaytimeException) {
+                    callback(Result.failure(ErrorsUtil.toFlutterError(ErrorsUtil.toPlaytimeException(error))))
                 }
             }
         )
     }
 
-    override fun showInstalledApps(callback: (Result<Unit>) -> Unit) {
-        val currentActivity = activity ?: run {
-            return callback(Result.failure(ErrorsUtil.getActivityIsNullError()))
+    override fun executeCampaignImpression(
+        campaign: PlaytimeCampaign,
+        impressionType: PlaytimeImpressionType?,
+        callback: (Result<Unit>) -> Unit
+    ) {
+        val playtimeCampaign =
+            cachedCampaign(campaign, "executeCampaignImpression", callback) ?: return
+
+        val sdkImpressionType = when (impressionType) {
+            PlaytimeImpressionType.ENGAGED -> io.adjoe.sdk.studio.PlaytimeImpressionType.ENGAGED
+            else -> io.adjoe.sdk.studio.PlaytimeImpressionType.DEFAULT
         }
 
-        io.adjoe.sdk.studio.PlaytimeStudio.showInstalledApps(
-            currentActivity,
-            object : io.adjoe.sdk.studio.PlaytimeDeeplinkListener {
-                override fun onError(error: PlaytimeResponseError?) {
-                    callback(Result.failure(
-                        ErrorsUtil.getFunctionError("showInstalledApps", error?.error?.message)
-                    ))
-                }
-
-                override fun onOpened() {
-                    return callback(Result.success(Unit))
-                }
-            }
-        )
-    }
-
-    override fun showAppDetails(campaign: PlaytimeCampaign, callback: (Result<Unit>) -> Unit) {
-        val playtimeCampaign = playtimeCampaignsCache[campaign.campaignUUID]
-
-        if (playtimeCampaign == null) {
-            return callback(Result.failure(
-                ErrorsUtil.getFunctionError("openInStore", "campaign is null")
-            ))
-        }
-
-        val currentActivity = activity ?: run {
-            return callback(Result.failure(ErrorsUtil.getActivityIsNullError()))
-        }
-
-        io.adjoe.sdk.studio.PlaytimeStudio.showAppDetails(
-            currentActivity,
+        io.adjoe.sdk.studio.PlaytimeStudio.executeCampaignImpression(
             playtimeCampaign,
-            object : io.adjoe.sdk.studio.PlaytimeDeeplinkListener {
-                override fun onError(error: PlaytimeResponseError?) {
-                    callback(Result.failure(
-                        ErrorsUtil.getFunctionError("showAppDetails", error?.error?.message)
-                    ))
-                }
-
-                override fun onOpened() {
-                    return callback(Result.success(Unit))
-                }
-            }
+            sdkImpressionType,
+            createImpressionListener("executeCampaignImpression", callback)
         )
     }
 
-    override fun showAppDetailsWithToken(token: String, campaignAppId: String, callback: (Result<Unit>) -> Unit) {
-        val currentActivity = activity ?: run {
-            return callback(Result.failure(ErrorsUtil.getActivityIsNullError()))
-        }
-
-        io.adjoe.sdk.studio.PlaytimeStudio.showAppDetails(
-            currentActivity,
+    override fun executeOfferImpression(
+        token: String,
+        appID: String,
+        callback: (Result<Unit>) -> Unit
+    ) {
+        io.adjoe.sdk.studio.PlaytimeStudio.executeOfferImpression(
             token,
-            campaignAppId,
-            object : io.adjoe.sdk.studio.PlaytimeDeeplinkListener {
-                override fun onError(error: PlaytimeResponseError?) {
-                    callback(Result.failure(
-                        ErrorsUtil.getFunctionError("showInstalledAppshowAppDetailsWithToken", error?.error?.message)
-                    ))
-                }
-
-                override fun onOpened() {
-                    return callback(Result.success(Unit))
-                }
-            }
-        )
-    }
-
-    override fun openChatbot(campaign: PlaytimeCampaign?, callback: (Result<Unit>) -> Unit) {
-        val playtimeCampaign = playtimeCampaignsCache[campaign?.campaignUUID]
-
-        val currentActivity = activity ?: run {
-            return callback(Result.failure(ErrorsUtil.getActivityIsNullError()))
-        }
-
-        io.adjoe.sdk.studio.PlaytimeStudio.openChatbot(
-            currentActivity,
-            playtimeCampaign,
-            object : io.adjoe.sdk.studio.PlaytimeDeeplinkListener {
-                override fun onError(error: PlaytimeResponseError?) {
-                    callback(Result.failure(
-                        ErrorsUtil.getFunctionError("openChatbot", error?.error?.message)
-                    ))
-                }
-
-                override fun onOpened() {
-                    return callback(Result.success(Unit))
-                }
-            }
-        )
-    }
-
-    override fun executeEngagement(campaign: PlaytimeCampaign, engagementType: String, callback: (Result<Unit>) -> Unit) {
-        val playtimeCampaign = playtimeCampaignsCache[campaign.campaignUUID]
-
-        val currentActivity = activity ?: run {
-            return callback(Result.failure(ErrorsUtil.getActivityIsNullError()))
-        }
-
-        if (playtimeCampaign == null) {
-            return callback(Result.failure(
-                ErrorsUtil.getFunctionError("executeEngagement", "campaign is null")
-            ))
-        }
-
-        var playtimeEngagmentType: PlaytimeEngagementType = PlaytimeEngagementType.DEFAULT
-
-        if (engagementType.equals("engaged")) {
-            playtimeEngagmentType = io.adjoe.sdk.studio.PlaytimeEngagementType.ENGAGED
-        }
-
-        io.adjoe.sdk.studio.PlaytimeStudio.executeEngagement(
-            currentActivity,
-            playtimeCampaign,
-            playtimeEngagmentType,
-            object : PlaytimeExecuteEngagementListener {
-                public override fun onFinished() {
-                    callback(Result.success(Unit))
-                }
-
-                public override fun onError(error: PlaytimeResponseError?) {
-                    if (error == null) {
-                        callback(Result.failure(
-                            ErrorsUtil.getFunctionError("executeEngagement", "Unknown error occurred")
-                        ))
-                        return
-                    }
-
-                    callback(Result.failure(
-                        ErrorsUtil.getFunctionError("executeEngagement", error?.error?.message)
-                    ))
-                }
-
-                public override fun onAlreadyEngaging() {
-                    callback(Result.failure(
-                        ErrorsUtil.getFunctionError("executeEngagement", "Request is already in progress")
-                    ))
-                }
-            }
-        )
-    }
-
-    override fun executeEngagementWithToken(appID: String, token: String, callback: (Result<Unit>) -> Unit) {
-        val currentActivity = activity ?: run {
-            return callback(Result.failure(ErrorsUtil.getActivityIsNullError()))
-        }
-
-        io.adjoe.sdk.studio.PlaytimeStudio.executeEngagement(
-            currentActivity,
             appID,
+            createImpressionListener("executeOfferImpression", callback)
+        )
+    }
+
+    override fun showCampaignDetails(
+        campaign: PlaytimeCampaign,
+        callback: (Result<Unit>) -> Unit
+    ) {
+        val currentActivity = activity ?: run {
+            return callback(
+                Result.failure(ErrorsUtil.toFlutterError(ErrorsUtil.getActivityIsNullError()))
+            )
+        }
+
+        val playtimeCampaign =
+            cachedCampaign(campaign, "showCampaignDetails", callback) ?: return
+
+        io.adjoe.sdk.studio.PlaytimeStudio.showCampaignDetails(
+            currentActivity,
+            playtimeCampaign,
+            createDeeplinkListener(callback)
+        )
+    }
+
+    override fun showOfferDetails(
+        token: String,
+        appID: String,
+        callback: (Result<Unit>) -> Unit
+    ) {
+        val currentActivity = activity ?: run {
+            return callback(
+                Result.failure(ErrorsUtil.toFlutterError(ErrorsUtil.getActivityIsNullError()))
+            )
+        }
+
+        io.adjoe.sdk.studio.PlaytimeStudio.showOfferDetails(
+            currentActivity,
             token,
-            object : PlaytimeExecuteEngagementListener {
-                public override fun onFinished() {
+            appID,
+            createDeeplinkListener(callback)
+        )
+    }
+
+    override fun showInstalledCampaigns(callback: (Result<Unit>) -> Unit) {
+        val currentActivity = activity ?: run {
+            return callback(
+                Result.failure(ErrorsUtil.toFlutterError(ErrorsUtil.getActivityIsNullError()))
+            )
+        }
+
+        io.adjoe.sdk.studio.PlaytimeStudio.showInstalledCampaigns(
+            currentActivity,
+            createDeeplinkListener(callback)
+        )
+    }
+
+    override fun showPermissionsPrompt(callback: (Result<Unit>) -> Unit) {
+        val currentActivity = activity ?: run {
+            return callback(
+                Result.failure(ErrorsUtil.toFlutterError(ErrorsUtil.getActivityIsNullError()))
+            )
+        }
+
+        io.adjoe.sdk.studio.PlaytimeStudio.showPermissionsPrompt(
+            currentActivity,
+            object : PlaytimePermissionsListener {
+                override fun onReceived() {
                     callback(Result.success(Unit))
                 }
 
-                public override fun onError(error: PlaytimeResponseError?) {
-                    if (error == null) {
-                        callback(Result.failure(
-                            ErrorsUtil.getFunctionError("executeEngagementWithToken", "Unknown error occurred")
-                        ))
-                        return
-                    }
-
-                    callback(Result.failure(
-                        ErrorsUtil.getFunctionError("executeEngagementWithToken", error?.error?.message)
-                    ))
-                }
-
-                public override fun onAlreadyEngaging() {
-                    callback(Result.failure(
-                        ErrorsUtil.getFunctionError("executeEngagementWithToken", "Request is already in progress")
-                    ))
+                override fun onError(error: PlaytimeException) {
+                    callback(Result.failure(ErrorsUtil.toFlutterError(ErrorsUtil.toPlaytimeException(error))))
                 }
             }
         )
     }
 
-    private fun createPermissionsListener(
+    private fun cachedCampaign(
+        campaign: PlaytimeCampaign,
         functionName: String,
-        callback: (Result<PlaytimePermissionsResponse>) -> Unit
-    ): PlaytimePermissionsListener {
-        return object : PlaytimePermissionsListener {
-            override fun onError(error: PlaytimeResponseError) {
-                callback(
-                    Result.failure(
-                        ErrorsUtil.getFunctionError(functionName, error.error.message)
-                    )
-                )
-            }
+        callback: (Result<Nothing>) -> Unit
+    ): io.adjoe.sdk.studio.PlaytimeCampaign? {
+        val playtimeCampaign = getCampaignFromCache(campaign)
 
-            override fun onReceived(response: io.adjoe.sdk.studio.PlaytimePermissionsResponse) {
-                callback(
-                    Result.success(
-                        PermissionsUtil.mapPlaytimePermissionsResponse(response)
+        if (playtimeCampaign == null) {
+            callback(
+                Result.failure(
+                    ErrorsUtil.toFlutterError(
+                        ErrorsUtil.getFunctionError(functionName, "campaign is null")
                     )
                 )
-            }
+            )
+            return null
         }
+
+        return playtimeCampaign
     }
 
     private fun createCampaignsListener(
         callback: (Result<PlaytimeCampaignsResponse>) -> Unit
     ): PlaytimeCampaignsListener {
         return object : PlaytimeCampaignsListener {
-            override fun onError(error: PlaytimeResponseError) {
-                callback(Result.failure(error.error))
+            override fun onReceived(response: io.adjoe.sdk.studio.PlaytimeCampaignsResponse) {
+                // Cache the native campaigns so methods taking a campaign can resolve the
+                // Pigeon model back to the SDK object.
+                response.campaigns.forEach { campaign ->
+                    if (campaign?.token?.isNullOrEmpty() == true) {
+                        campaign.campaignUUID?.let { playtimeCampaignsCache[it] = campaign }
+                    } else {
+                        campaign.token?.let { playtimeCampaignsCache[it] = campaign }
+                    }
+                }
+
+                callback(
+                    Result.success(CampaignsUtil.mapPlaytimeCampaignsResponse(response))
+                )
             }
 
-            override fun onReceived(response: io.adjoe.sdk.studio.PlaytimeCampaignsResponse) {
-                val campaigns = CampaignsUtil.mapPlaytimeCampaignsResponse(response)
-                savePlaytimeCampaignsInCache(response)
-                callback(Result.success(campaigns))
+            override fun onError(error: PlaytimeException) {
+                callback(Result.failure(ErrorsUtil.toFlutterError(ErrorsUtil.toPlaytimeException(error))))
             }
         }
     }
 
-    private fun savePlaytimeCampaignsInCache(response: io.adjoe.sdk.studio.PlaytimeCampaignsResponse) {
-        response.campaigns.forEach { campaign ->
-            campaign.campaignUUID?.let { campaignUUID ->
-                playtimeCampaignsCache.put(campaignUUID, campaign)
+    private fun createDeeplinkListener(
+        callback: (Result<Unit>) -> Unit
+    ): PlaytimeDeeplinkListener {
+        return object : PlaytimeDeeplinkListener {
+            override fun onOpened() {
+                callback(Result.success(Unit))
+            }
+
+            override fun onError(error: PlaytimeException) {
+                callback(Result.failure(ErrorsUtil.toFlutterError(ErrorsUtil.toPlaytimeException(error))))
             }
         }
+    }
+
+    private fun createImpressionListener(
+        functionName: String,
+        callback: (Result<Unit>) -> Unit
+    ): PlaytimeExecuteImpressionListener {
+        return object : PlaytimeExecuteImpressionListener {
+            override fun onFinished() {
+                callback(Result.success(Unit))
+            }
+
+            override fun onAlreadyEngaging() {
+                callback(
+                    Result.failure(
+                        ErrorsUtil.toFlutterError(
+                            ErrorsUtil.getFunctionError(
+                                functionName,
+                                "Request is already in progress"
+                            )
+                        )
+                    )
+                )
+            }
+
+            override fun onError(error: PlaytimeException) {
+                callback(Result.failure(ErrorsUtil.toFlutterError(ErrorsUtil.toPlaytimeException(error))))
+            }
+        }
+    }
+
+    private fun getCampaignFromCache(campaign: PlaytimeCampaign?): io.adjoe.sdk.studio.PlaytimeCampaign? {
+        if (campaign?.token?.isNullOrEmpty() == true) {
+            return campaign?.campaignUUID?.let { playtimeCampaignsCache[it] }
+        }
+
+        return campaign?.token?.let { playtimeCampaignsCache[it] }
     }
 }

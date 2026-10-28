@@ -8,6 +8,10 @@ public class SdkPlugin: NSObject, FlutterPlugin {
     registrar.addMethodCallDelegate(instance, channel: channel)
     PlaytimeSetup.setUp(binaryMessenger: registrar.messenger(), api: PlaytimeImpl())
     PlaytimeStudioSetup.setUp(binaryMessenger: registrar.messenger(), api: PlaytimeStudioImpl())
+    StreamEventsStreamHandler.register(
+      with: registrar.messenger(),
+      streamHandler: PlaytimeEventForwarder.shared
+    )
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {

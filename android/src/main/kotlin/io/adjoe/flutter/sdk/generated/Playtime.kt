@@ -192,8 +192,187 @@ class FlutterError (
   val details: Any? = null
 ) : RuntimeException()
 
+/** Represents the gender of the user. */
+enum class PlaytimeGender(val raw: Int) {
+  /** Male gender. */
+  MALE(0),
+  /** Female gender. */
+  FEMALE(1),
+  /** Unknown gender. */
+  UNKNOWN(2);
+
+  companion object {
+    fun ofRaw(raw: Int): PlaytimeGender? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
+/** The model that represents the campaigns state for SDK */
+enum class PlaytimeCampaignsState(val raw: Int) {
+  /** Fully eligible */
+  READY(0),
+  /** No campaigns available */
+  BLOCKED(1),
+  /** Campaigns conditionally blocked */
+  VPN_DETECTED(2),
+  /** No available campaigns for user region */
+  GEO_MISMATCH(3),
+  /** The SDK is not initialized */
+  NOT_INITIALIZED(4);
+
+  companion object {
+    fun ofRaw(raw: Int): PlaytimeCampaignsState? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
 /**
- * This interface is used to pass additional identifiers of the user.
+ * Represents the current status of a campaign.
+ * @basicnodoc
+ */
+enum class PlaytimeCampaignStatus(val raw: Int) {
+  /** The campaign is available for installation. */
+  AVAILABLE(0),
+  /** Waiting for the app installation. */
+  PENDING(1),
+  /** The app associated with the campaign has been installed. */
+  INSTALLED(2),
+  /** The campaign installation or processing has failed. */
+  FAILED(3);
+
+  companion object {
+    fun ofRaw(raw: Int): PlaytimeCampaignStatus? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
+/**
+ * Impression type for Playtime interaction.
+ * @basicnodoc
+ */
+enum class PlaytimeImpressionType(val raw: Int) {
+  /** The default interaction which should be invoked when the user sees the campaign view. */
+  DEFAULT(0),
+  /** Engaged interaction which signifies that the user interacted with the campaign. */
+  ENGAGED(1);
+
+  companion object {
+    fun ofRaw(raw: Int): PlaytimeImpressionType? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
+/**
+ * The consent action to apply when updating the user's Playtime terms of service consent.
+ * @basicnodoc
+ */
+enum class TosConsentAction(val raw: Int) {
+  /** Accept the terms of service on behalf of the user. */
+  ACCEPT(0),
+  /** Withdraw the user's previously granted consent to the terms of service. */
+  WITHDRAW(1);
+
+  companion object {
+    fun ofRaw(raw: Int): TosConsentAction? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
+/**
+ * Represents the placement where the catalog will be shown.
+ * Use one of the predefined placements or create a custom placement via the custom case.
+ *
+ * Use one of the predefined constants on `CatalogPlacement`, or
+ * `CatalogPlacement.custom()` for a publisher-supplied value.
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class CatalogPlacement (
+  /** The case's internal value (e.g. `earn_tab`), or a publisher-supplied custom string. */
+  val value: String,
+  /** Whether [value] is a publisher-supplied custom value rather than a predefined case. */
+  val isCustom: Boolean? = null
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): CatalogPlacement {
+      val value = pigeonVar_list[0] as String
+      val isCustom = pigeonVar_list[1] as Boolean?
+      return CatalogPlacement(value, isCustom)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      value,
+      isCustom,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other == null || other.javaClass != javaClass) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    val other = other as CatalogPlacement
+    return PlaytimePigeonUtils.deepEquals(this.value, other.value) && PlaytimePigeonUtils.deepEquals(this.isCustom, other.isCustom)
+  }
+
+  override fun hashCode(): Int {
+    var result = javaClass.hashCode()
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.value)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.isCustom)
+    return result
+  }
+}
+
+/**
+ * Represents the app category for campaign targeting.
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class AppCategory (
+  /** The case's internal value: `gaming`, `non-gaming` or `both`. */
+  val value: String
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): AppCategory {
+      val value = pigeonVar_list[0] as String
+      return AppCategory(value)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      value,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other == null || other.javaClass != javaClass) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    val other = other as AppCategory
+    return PlaytimePigeonUtils.deepEquals(this.value, other.value)
+  }
+
+  override fun hashCode(): Int {
+    var result = javaClass.hashCode()
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.value)
+    return result
+  }
+}
+
+/**
+ * Adjoe Extension class holds additional optional subids to be used by publisher to pass different
+ * values
  *
  * Generated class from Pigeon that represents data sent in messages.
  */
@@ -252,44 +431,60 @@ data class PlaytimeExtensions (
 }
 
 /**
- * The options passed to Playtime methods.
+ * Use this class to pass additional options like the user ID to
+ * [io.adjoe.sdk.Playtime.initPlaytime].
  *
  * Generated class from Pigeon that represents data sent in messages.
  */
-data class PlaytimeOptions (
+data class InitOptions (
+  /** The SDK hash used to initialize the SDK. Used for all subsequent requests. */
+  val sdkHash: String,
   /** A custom identifier you must assign to each user. */
   val userId: String? = null,
-  /** The SDK hash for initialization. */
-  val sdkHash: String? = null,
-  /** A list of tokens. */
-  val tokens: List<String?>? = null,
   /** User profile for targeting. */
   val userProfile: PlaytimeUserProfile? = null,
-  /** User acquisition parameters. */
-  val params: PlaytimeParams? = null,
   /** Extension IDs visible in S2S payouts. */
-  val extensions: PlaytimeExtensions? = null
+  val extensions: PlaytimeExtensions? = null,
+  /** The language override for the SDK. When null, the device locale language is applied. */
+  val language: String? = null,
+  /** User acquisition network where the user came from. */
+  val uaNetwork: String? = null,
+  /** User acquisition channel where the user came from; e.g. video, offerwall. */
+  val uaChannel: String? = null,
+  /**
+   * User acquisition campaign name. Sent to campaign distribution as the
+   * UASubPublisherEncrypted query param.
+   */
+  val uaCampaignName: String? = null,
+  /** Only use this field if you use multiple types of cash currencies for rewarding (e.g, USD, EUR). Setting the country tells adjoe which currency to use for the user. Country can only be set once per user. Requires a valid ISO 3166-1 alpha-2 code (e.g., US). */
+  val country: String? = null
 )
  {
   companion object {
-    fun fromList(pigeonVar_list: List<Any?>): PlaytimeOptions {
-      val userId = pigeonVar_list[0] as String?
-      val sdkHash = pigeonVar_list[1] as String?
-      val tokens = pigeonVar_list[2] as List<String?>?
-      val userProfile = pigeonVar_list[3] as PlaytimeUserProfile?
-      val params = pigeonVar_list[4] as PlaytimeParams?
-      val extensions = pigeonVar_list[5] as PlaytimeExtensions?
-      return PlaytimeOptions(userId, sdkHash, tokens, userProfile, params, extensions)
+    fun fromList(pigeonVar_list: List<Any?>): InitOptions {
+      val sdkHash = pigeonVar_list[0] as String
+      val userId = pigeonVar_list[1] as String?
+      val userProfile = pigeonVar_list[2] as PlaytimeUserProfile?
+      val extensions = pigeonVar_list[3] as PlaytimeExtensions?
+      val language = pigeonVar_list[4] as String?
+      val uaNetwork = pigeonVar_list[5] as String?
+      val uaChannel = pigeonVar_list[6] as String?
+      val uaCampaignName = pigeonVar_list[7] as String?
+      val country = pigeonVar_list[8] as String?
+      return InitOptions(sdkHash, userId, userProfile, extensions, language, uaNetwork, uaChannel, uaCampaignName, country)
     }
   }
   fun toList(): List<Any?> {
     return listOf(
-      userId,
       sdkHash,
-      tokens,
+      userId,
       userProfile,
-      params,
       extensions,
+      language,
+      uaNetwork,
+      uaChannel,
+      uaCampaignName,
+      country,
     )
   }
   override fun equals(other: Any?): Boolean {
@@ -299,18 +494,238 @@ data class PlaytimeOptions (
     if (this === other) {
       return true
     }
-    val other = other as PlaytimeOptions
-    return PlaytimePigeonUtils.deepEquals(this.userId, other.userId) && PlaytimePigeonUtils.deepEquals(this.sdkHash, other.sdkHash) && PlaytimePigeonUtils.deepEquals(this.tokens, other.tokens) && PlaytimePigeonUtils.deepEquals(this.userProfile, other.userProfile) && PlaytimePigeonUtils.deepEquals(this.params, other.params) && PlaytimePigeonUtils.deepEquals(this.extensions, other.extensions)
+    val other = other as InitOptions
+    return PlaytimePigeonUtils.deepEquals(this.sdkHash, other.sdkHash) && PlaytimePigeonUtils.deepEquals(this.userId, other.userId) && PlaytimePigeonUtils.deepEquals(this.userProfile, other.userProfile) && PlaytimePigeonUtils.deepEquals(this.extensions, other.extensions) && PlaytimePigeonUtils.deepEquals(this.language, other.language) && PlaytimePigeonUtils.deepEquals(this.uaNetwork, other.uaNetwork) && PlaytimePigeonUtils.deepEquals(this.uaChannel, other.uaChannel) && PlaytimePigeonUtils.deepEquals(this.uaCampaignName, other.uaCampaignName) && PlaytimePigeonUtils.deepEquals(this.country, other.country)
   }
 
   override fun hashCode(): Int {
     var result = javaClass.hashCode()
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.userId)
     result = 31 * result + PlaytimePigeonUtils.deepHash(this.sdkHash)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.tokens)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.userId)
     result = 31 * result + PlaytimePigeonUtils.deepHash(this.userProfile)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.params)
     result = 31 * result + PlaytimePigeonUtils.deepHash(this.extensions)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.language)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.uaNetwork)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.uaChannel)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.uaCampaignName)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.country)
+    return result
+  }
+}
+
+/**
+ * Options for the Playtime catalog request. Provides context (placement, category, promotion tag, and per-request UA context) to the backend for campaign targeting.
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class CatalogOptions (
+  /** The placement where the catalog will be shown. */
+  val placement: CatalogPlacement? = null,
+  /** The app category filter. Defaults to GAMING. */
+  val category: AppCategory? = null,
+  /** An optional promotion tag to trigger user-level promotions. */
+  val promotionTag: String? = null,
+  /** Metadata visible in S2S payouts. */
+  val metadata: PlaytimeMetadata? = null
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): CatalogOptions {
+      val placement = pigeonVar_list[0] as CatalogPlacement?
+      val category = pigeonVar_list[1] as AppCategory?
+      val promotionTag = pigeonVar_list[2] as String?
+      val metadata = pigeonVar_list[3] as PlaytimeMetadata?
+      return CatalogOptions(placement, category, promotionTag, metadata)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      placement,
+      category,
+      promotionTag,
+      metadata,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other == null || other.javaClass != javaClass) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    val other = other as CatalogOptions
+    return PlaytimePigeonUtils.deepEquals(this.placement, other.placement) && PlaytimePigeonUtils.deepEquals(this.category, other.category) && PlaytimePigeonUtils.deepEquals(this.promotionTag, other.promotionTag) && PlaytimePigeonUtils.deepEquals(this.metadata, other.metadata)
+  }
+
+  override fun hashCode(): Int {
+    var result = javaClass.hashCode()
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.placement)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.category)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.promotionTag)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.metadata)
+    return result
+  }
+}
+
+/** Generated class from Pigeon that represents data sent in messages. */
+data class PlaytimeUserProfile (
+  /** User gender. */
+  val gender: PlaytimeGender? = null,
+  /**
+   * The user's birthday, as an ISO 8601 string.
+   *
+   * Accepts a bare calendar date (`2002-12-02`), an instant (`2002-12-02T00:00:00Z`,
+   * `2002-12-02T00:00:00.000Z`) or an explicit UTC offset
+   * (`2002-12-02T00:00:00.000+01:00`). Parsed into a native date type on both platforms;
+   * an unparseable value is treated as "no birthday" rather than an error.
+   */
+  val birthday: String? = null
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): PlaytimeUserProfile {
+      val gender = pigeonVar_list[0] as PlaytimeGender?
+      val birthday = pigeonVar_list[1] as String?
+      return PlaytimeUserProfile(gender, birthday)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      gender,
+      birthday,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other == null || other.javaClass != javaClass) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    val other = other as PlaytimeUserProfile
+    return PlaytimePigeonUtils.deepEquals(this.gender, other.gender) && PlaytimePigeonUtils.deepEquals(this.birthday, other.birthday)
+  }
+
+  override fun hashCode(): Int {
+    var result = javaClass.hashCode()
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.gender)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.birthday)
+    return result
+  }
+}
+
+/**
+ * An SDK event shared with the publisher using the configured event map.
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class PlaytimeEvent (
+  /** The publisher event name configured for the emitted SDK event. */
+  val name: String,
+  /** The time at which the SDK delivered the event to the listener, as an ISO 8601 string. */
+  val occurredAt: String
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): PlaytimeEvent {
+      val name = pigeonVar_list[0] as String
+      val occurredAt = pigeonVar_list[1] as String
+      return PlaytimeEvent(name, occurredAt)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      name,
+      occurredAt,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other == null || other.javaClass != javaClass) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    val other = other as PlaytimeEvent
+    return PlaytimePigeonUtils.deepEquals(this.name, other.name) && PlaytimePigeonUtils.deepEquals(this.occurredAt, other.occurredAt)
+  }
+
+  override fun hashCode(): Int {
+    var result = javaClass.hashCode()
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.name)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.occurredAt)
+    return result
+  }
+}
+
+/**
+ * The model that represents the status for SDK
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class PlaytimeStatus (
+  /**
+   * The Playtime SDK version. On wrappers this is exposed as a codegen constant to satisfy
+   * the non-async bridge-layer rule.
+   */
+  val version: String,
+  /** A flag indicating if the SDK is successfully initialized. */
+  val isInitialized: Boolean,
+  /** The unique ID of the user by which they are identified within the Playtime services. */
+  val userId: String? = null,
+  /** A flag indicating whether the terms of service have been accepted. */
+  val isTosAccepted: Boolean,
+  /** Additional information about the SDK status. */
+  val details: PlaytimeStatusDetails,
+  /**
+   * A flag indicating whether the usage permission has been accepted.
+   *
+   * Provided on Android only. On iOS this is null, because the iOS SDK has no usage
+   * permission concept and emits no value for it.
+   */
+  val isUsagePermissionAccepted: Boolean? = null
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): PlaytimeStatus {
+      val version = pigeonVar_list[0] as String
+      val isInitialized = pigeonVar_list[1] as Boolean
+      val userId = pigeonVar_list[2] as String?
+      val isTosAccepted = pigeonVar_list[3] as Boolean
+      val details = pigeonVar_list[4] as PlaytimeStatusDetails
+      val isUsagePermissionAccepted = pigeonVar_list[5] as Boolean?
+      return PlaytimeStatus(version, isInitialized, userId, isTosAccepted, details, isUsagePermissionAccepted)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      version,
+      isInitialized,
+      userId,
+      isTosAccepted,
+      details,
+      isUsagePermissionAccepted,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other == null || other.javaClass != javaClass) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    val other = other as PlaytimeStatus
+    return PlaytimePigeonUtils.deepEquals(this.version, other.version) && PlaytimePigeonUtils.deepEquals(this.isInitialized, other.isInitialized) && PlaytimePigeonUtils.deepEquals(this.userId, other.userId) && PlaytimePigeonUtils.deepEquals(this.isTosAccepted, other.isTosAccepted) && PlaytimePigeonUtils.deepEquals(this.details, other.details) && PlaytimePigeonUtils.deepEquals(this.isUsagePermissionAccepted, other.isUsagePermissionAccepted)
+  }
+
+  override fun hashCode(): Int {
+    var result = javaClass.hashCode()
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.version)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.isInitialized)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.userId)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.isTosAccepted)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.details)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.isUsagePermissionAccepted)
     return result
   }
 }
@@ -325,15 +740,8 @@ data class PlaytimeStatusDetails (
   val isFraud: Boolean,
   /** Indicates whether the user is eligible to request campaigns. */
   val campaignsAvailable: Boolean,
-  /**
-   * Provides optional context explaining the eligibility state.
-   * This list captures the current environment or account constraints, such as:
-   * * `READY`: Fully eligible.
-   * * `BLOCKED`: No campaigns available.
-   * * `VPN_DETECTED`: Campaigns conditionally blocked.
-   * * `GEO_MISMATCH`: No available campaigns for user region.
-   */
-  val campaignsState: List<String?>,
+  /** Provides optional context explaining the eligibility state. */
+  val campaignsState: List<PlaytimeCampaignsState?>,
   /** The test group assigned to the user by the backend, if any. */
   val testGroup: Long? = null
 )
@@ -342,7 +750,7 @@ data class PlaytimeStatusDetails (
     fun fromList(pigeonVar_list: List<Any?>): PlaytimeStatusDetails {
       val isFraud = pigeonVar_list[0] as Boolean
       val campaignsAvailable = pigeonVar_list[1] as Boolean
-      val campaignsState = pigeonVar_list[2] as List<String?>
+      val campaignsState = pigeonVar_list[2] as List<PlaytimeCampaignsState?>
       val testGroup = pigeonVar_list[3] as Long?
       return PlaytimeStatusDetails(isFraud, campaignsAvailable, campaignsState, testGroup)
     }
@@ -377,28 +785,28 @@ data class PlaytimeStatusDetails (
 }
 
 /**
- * The model that represents the status for SDK
+ * This class is used to pass additional metadata of the user.
  *
  * Generated class from Pigeon that represents data sent in messages.
  */
-data class PlaytimeStatus (
-  /** A flag indicating if the SDK is successfully initialized. */
-  val isInitialized: Boolean,
-  /** Additional information about the SDK status. */
-  val details: PlaytimeStatusDetails
+data class PlaytimeMetadata (
+  /** An optional identifier that is provided back in the S2S payout URL. */
+  val metadata1: String? = null,
+  /** An optional identifier that is provided back in the S2S payout URL. */
+  val metadata2: String? = null
 )
  {
   companion object {
-    fun fromList(pigeonVar_list: List<Any?>): PlaytimeStatus {
-      val isInitialized = pigeonVar_list[0] as Boolean
-      val details = pigeonVar_list[1] as PlaytimeStatusDetails
-      return PlaytimeStatus(isInitialized, details)
+    fun fromList(pigeonVar_list: List<Any?>): PlaytimeMetadata {
+      val metadata1 = pigeonVar_list[0] as String?
+      val metadata2 = pigeonVar_list[1] as String?
+      return PlaytimeMetadata(metadata1, metadata2)
     }
   }
   fun toList(): List<Any?> {
     return listOf(
-      isInitialized,
-      details,
+      metadata1,
+      metadata2,
     )
   }
   override fun equals(other: Any?): Boolean {
@@ -408,205 +816,46 @@ data class PlaytimeStatus (
     if (this === other) {
       return true
     }
-    val other = other as PlaytimeStatus
-    return PlaytimePigeonUtils.deepEquals(this.isInitialized, other.isInitialized) && PlaytimePigeonUtils.deepEquals(this.details, other.details)
+    val other = other as PlaytimeMetadata
+    return PlaytimePigeonUtils.deepEquals(this.metadata1, other.metadata1) && PlaytimePigeonUtils.deepEquals(this.metadata2, other.metadata2)
   }
 
   override fun hashCode(): Int {
     var result = javaClass.hashCode()
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.isInitialized)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.details)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.metadata1)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.metadata2)
     return result
   }
 }
 
 /**
- * The parameters related to User acquisition metadata.
+ * Represents the placement where Studio campaigns will be shown.
+ * Use one of the predefined placements or create a custom placement via the custom case.
  *
- * Generated class from Pigeon that represents data sent in messages.
- */
-data class PlaytimeParams (
-  /** User acquisition network where the user came from. */
-  val uaNetwork: String? = null,
-  /** User acquisition channel where the user came from; e.g. video, offerwall. */
-  val uaChannel: String? = null,
-  /** User acquisition sub ID in clear text where the user came from. */
-  val uaSubPublisherCleartext: String? = null,
-  /** User acquisition sub ID in encrypted form where the user came from. */
-  val uaSubPublisherEncrypted: String? = null,
-  /** The placement of the Playtime experience; e.g. “home screen”, “more options menu”. */
-  val placement: String? = null,
-  /** Promotion tag to trigger user-level promotions. */
-  val promotionTag: String? = null
-)
- {
-  companion object {
-    fun fromList(pigeonVar_list: List<Any?>): PlaytimeParams {
-      val uaNetwork = pigeonVar_list[0] as String?
-      val uaChannel = pigeonVar_list[1] as String?
-      val uaSubPublisherCleartext = pigeonVar_list[2] as String?
-      val uaSubPublisherEncrypted = pigeonVar_list[3] as String?
-      val placement = pigeonVar_list[4] as String?
-      val promotionTag = pigeonVar_list[5] as String?
-      return PlaytimeParams(uaNetwork, uaChannel, uaSubPublisherCleartext, uaSubPublisherEncrypted, placement, promotionTag)
-    }
-  }
-  fun toList(): List<Any?> {
-    return listOf(
-      uaNetwork,
-      uaChannel,
-      uaSubPublisherCleartext,
-      uaSubPublisherEncrypted,
-      placement,
-      promotionTag,
-    )
-  }
-  override fun equals(other: Any?): Boolean {
-    if (other == null || other.javaClass != javaClass) {
-      return false
-    }
-    if (this === other) {
-      return true
-    }
-    val other = other as PlaytimeParams
-    return PlaytimePigeonUtils.deepEquals(this.uaNetwork, other.uaNetwork) && PlaytimePigeonUtils.deepEquals(this.uaChannel, other.uaChannel) && PlaytimePigeonUtils.deepEquals(this.uaSubPublisherCleartext, other.uaSubPublisherCleartext) && PlaytimePigeonUtils.deepEquals(this.uaSubPublisherEncrypted, other.uaSubPublisherEncrypted) && PlaytimePigeonUtils.deepEquals(this.placement, other.placement) && PlaytimePigeonUtils.deepEquals(this.promotionTag, other.promotionTag)
-  }
-
-  override fun hashCode(): Int {
-    var result = javaClass.hashCode()
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.uaNetwork)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.uaChannel)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.uaSubPublisherCleartext)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.uaSubPublisherEncrypted)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.placement)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.promotionTag)
-    return result
-  }
-}
-
-/**
- * Additional user information.
- *
- * Generated class from Pigeon that represents data sent in messages.
- */
-data class PlaytimeUserProfile (
-  /** The user's gender. Must be one of 'male', 'female' or 'unknown'. */
-  val gender: String? = null,
-  /** ISO8601 timestamp designating user’s birthday, e.g. 2025-06-26T14:45:30.123Z. */
-  val birthday: String? = null
-)
- {
-  companion object {
-    fun fromList(pigeonVar_list: List<Any?>): PlaytimeUserProfile {
-      val gender = pigeonVar_list[0] as String?
-      val birthday = pigeonVar_list[1] as String?
-      return PlaytimeUserProfile(gender, birthday)
-    }
-  }
-  fun toList(): List<Any?> {
-    return listOf(
-      gender,
-      birthday,
-    )
-  }
-  override fun equals(other: Any?): Boolean {
-    if (other == null || other.javaClass != javaClass) {
-      return false
-    }
-    if (this === other) {
-      return true
-    }
-    val other = other as PlaytimeUserProfile
-    return PlaytimePigeonUtils.deepEquals(this.gender, other.gender) && PlaytimePigeonUtils.deepEquals(this.birthday, other.birthday)
-  }
-
-  override fun hashCode(): Int {
-    var result = javaClass.hashCode()
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.gender)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.birthday)
-    return result
-  }
-}
-
-/**
- * Rewarded action representation.
+ * Use one of the predefined constants on `StudioPlacement`, or `StudioPlacement.custom()`
+ * for a publisher-supplied value.
  * @basicnodoc
  *
  * Generated class from Pigeon that represents data sent in messages.
  */
-data class PlaytimeRewardAction (
-  /** Reward action name. */
-  val name: String? = null,
-  /** Description of the task. */
-  val taskDescription: String? = null,
-  /** Type of task to complete. Possible values: sequential, bonus, playtime. */
-  val taskType: String,
-  /** Duration (in seconds) of play time required to reward a time-based event. Currently not supported on iOS. */
-  val playDuration: Long? = null,
-  /** The level number of the time-based event. Currently not supported on iOS. */
-  val level: Long? = null,
-  /** The amount of coins or rewards the user will receive upon completing the event. */
-  val amount: Long? = null,
-  /** Timestamp when a reward was granted (ISO 8601). */
-  val rewardedAt: String? = null,
-  /** Number of times that the action can be rewarded, applicable to repetitive events. */
-  val rewardsCount: Long? = null,
-  /** Number of times that the action has been rewarded, applicable to repetitive events. */
-  val completedRewards: Long? = null,
-  /** Time window (in minutes) during which the Booster reward is applicable. */
-  val timedCoinsDuration: Long? = null,
-  /** Amount of coins rewarded during the booster period. */
-  val timedCoins: Long? = null,
-  /** Amount of coins that would be rewarded without any bonuses applied. */
-  val originalCoins: Long? = null,
-  /** Flag indicating whether the event is a booster event. */
-  val isTimed: Boolean? = null,
-  /** Flag indicating whether the event has been rewarded with promotion. */
-  val isRewardedForPromotion: Boolean? = null,
-  /**
-   * The timestamp (ISO 8601) indicating when the booster reward expires.
-   * Use it to determine user eligibility for booster rewards and support features such as booster countdown.
-   */
-  val boosterExpiresAt: String? = null
+data class StudioPlacement (
+  /** The case's internal value (e.g. `earn_tab`), or a publisher-supplied custom string. */
+  val value: String,
+  /** Whether [value] is a publisher-supplied custom value rather than a predefined case. */
+  val isCustom: Boolean? = null
 )
  {
   companion object {
-    fun fromList(pigeonVar_list: List<Any?>): PlaytimeRewardAction {
-      val name = pigeonVar_list[0] as String?
-      val taskDescription = pigeonVar_list[1] as String?
-      val taskType = pigeonVar_list[2] as String
-      val playDuration = pigeonVar_list[3] as Long?
-      val level = pigeonVar_list[4] as Long?
-      val amount = pigeonVar_list[5] as Long?
-      val rewardedAt = pigeonVar_list[6] as String?
-      val rewardsCount = pigeonVar_list[7] as Long?
-      val completedRewards = pigeonVar_list[8] as Long?
-      val timedCoinsDuration = pigeonVar_list[9] as Long?
-      val timedCoins = pigeonVar_list[10] as Long?
-      val originalCoins = pigeonVar_list[11] as Long?
-      val isTimed = pigeonVar_list[12] as Boolean?
-      val isRewardedForPromotion = pigeonVar_list[13] as Boolean?
-      val boosterExpiresAt = pigeonVar_list[14] as String?
-      return PlaytimeRewardAction(name, taskDescription, taskType, playDuration, level, amount, rewardedAt, rewardsCount, completedRewards, timedCoinsDuration, timedCoins, originalCoins, isTimed, isRewardedForPromotion, boosterExpiresAt)
+    fun fromList(pigeonVar_list: List<Any?>): StudioPlacement {
+      val value = pigeonVar_list[0] as String
+      val isCustom = pigeonVar_list[1] as Boolean?
+      return StudioPlacement(value, isCustom)
     }
   }
   fun toList(): List<Any?> {
     return listOf(
-      name,
-      taskDescription,
-      taskType,
-      playDuration,
-      level,
-      amount,
-      rewardedAt,
-      rewardsCount,
-      completedRewards,
-      timedCoinsDuration,
-      timedCoins,
-      originalCoins,
-      isTimed,
-      isRewardedForPromotion,
-      boosterExpiresAt,
+      value,
+      isCustom,
     )
   }
   override fun equals(other: Any?): Boolean {
@@ -616,27 +865,419 @@ data class PlaytimeRewardAction (
     if (this === other) {
       return true
     }
-    val other = other as PlaytimeRewardAction
-    return PlaytimePigeonUtils.deepEquals(this.name, other.name) && PlaytimePigeonUtils.deepEquals(this.taskDescription, other.taskDescription) && PlaytimePigeonUtils.deepEquals(this.taskType, other.taskType) && PlaytimePigeonUtils.deepEquals(this.playDuration, other.playDuration) && PlaytimePigeonUtils.deepEquals(this.level, other.level) && PlaytimePigeonUtils.deepEquals(this.amount, other.amount) && PlaytimePigeonUtils.deepEquals(this.rewardedAt, other.rewardedAt) && PlaytimePigeonUtils.deepEquals(this.rewardsCount, other.rewardsCount) && PlaytimePigeonUtils.deepEquals(this.completedRewards, other.completedRewards) && PlaytimePigeonUtils.deepEquals(this.timedCoinsDuration, other.timedCoinsDuration) && PlaytimePigeonUtils.deepEquals(this.timedCoins, other.timedCoins) && PlaytimePigeonUtils.deepEquals(this.originalCoins, other.originalCoins) && PlaytimePigeonUtils.deepEquals(this.isTimed, other.isTimed) && PlaytimePigeonUtils.deepEquals(this.isRewardedForPromotion, other.isRewardedForPromotion) && PlaytimePigeonUtils.deepEquals(this.boosterExpiresAt, other.boosterExpiresAt)
+    val other = other as StudioPlacement
+    return PlaytimePigeonUtils.deepEquals(this.value, other.value) && PlaytimePigeonUtils.deepEquals(this.isCustom, other.isCustom)
   }
 
   override fun hashCode(): Int {
     var result = javaClass.hashCode()
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.name)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.taskDescription)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.taskType)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.playDuration)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.level)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.amount)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.rewardedAt)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.rewardsCount)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.completedRewards)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.timedCoinsDuration)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.timedCoins)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.originalCoins)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.isTimed)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.isRewardedForPromotion)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.boosterExpiresAt)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.value)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.isCustom)
+    return result
+  }
+}
+
+/**
+ * Represents the display format for campaign rendering.
+ * Use one of the predefined formats or create a custom format via the custom case.
+ *
+ * Use one of the predefined constants on `DisplayFormat`, or `DisplayFormat.custom()` for
+ * a publisher-supplied value.
+ * @basicnodoc
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class DisplayFormat (
+  /**
+   * The case's internal value (e.g. `notification_inbox`), or a publisher-supplied custom
+   * string.
+   */
+  val value: String,
+  /** Whether [value] is a publisher-supplied custom value rather than a predefined case. */
+  val isCustom: Boolean? = null
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): DisplayFormat {
+      val value = pigeonVar_list[0] as String
+      val isCustom = pigeonVar_list[1] as Boolean?
+      return DisplayFormat(value, isCustom)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      value,
+      isCustom,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other == null || other.javaClass != javaClass) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    val other = other as DisplayFormat
+    return PlaytimePigeonUtils.deepEquals(this.value, other.value) && PlaytimePigeonUtils.deepEquals(this.isCustom, other.isCustom)
+  }
+
+  override fun hashCode(): Int {
+    var result = javaClass.hashCode()
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.value)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.isCustom)
+    return result
+  }
+}
+
+/**
+ * Options for campaign distribution requests. Provides context (placement, category,
+ * display format, promotion tag, and per-request UA context) to the backend for campaign
+ * targeting.
+ * @basicnodoc
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class CampaignOptions (
+  /** The placement where the campaigns will be shown. */
+  val placement: StudioPlacement? = null,
+  /** The app category filter. Defaults to GAMING. */
+  val category: AppCategory? = null,
+  /** The UI display format. */
+  val displayFormat: DisplayFormat? = null,
+  /** An optional promotion tag to trigger user-level promotions. */
+  val promotionTag: String? = null,
+  /** Metadata visible in S2S payouts. */
+  val metadata: PlaytimeMetadata? = null
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): CampaignOptions {
+      val placement = pigeonVar_list[0] as StudioPlacement?
+      val category = pigeonVar_list[1] as AppCategory?
+      val displayFormat = pigeonVar_list[2] as DisplayFormat?
+      val promotionTag = pigeonVar_list[3] as String?
+      val metadata = pigeonVar_list[4] as PlaytimeMetadata?
+      return CampaignOptions(placement, category, displayFormat, promotionTag, metadata)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      placement,
+      category,
+      displayFormat,
+      promotionTag,
+      metadata,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other == null || other.javaClass != javaClass) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    val other = other as CampaignOptions
+    return PlaytimePigeonUtils.deepEquals(this.placement, other.placement) && PlaytimePigeonUtils.deepEquals(this.category, other.category) && PlaytimePigeonUtils.deepEquals(this.displayFormat, other.displayFormat) && PlaytimePigeonUtils.deepEquals(this.promotionTag, other.promotionTag) && PlaytimePigeonUtils.deepEquals(this.metadata, other.metadata)
+  }
+
+  override fun hashCode(): Int {
+    var result = javaClass.hashCode()
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.placement)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.category)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.displayFormat)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.promotionTag)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.metadata)
+    return result
+  }
+}
+
+/**
+ * Options for installed-campaign requests. Exposes only the app category filter for
+ * campaign targeting.
+ * @basicnodoc
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class InstalledCampaignOptions (
+  /** The app category filter. Defaults to GAMING. */
+  val category: AppCategory? = null
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): InstalledCampaignOptions {
+      val category = pigeonVar_list[0] as AppCategory?
+      return InstalledCampaignOptions(category)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      category,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other == null || other.javaClass != javaClass) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    val other = other as InstalledCampaignOptions
+    return PlaytimePigeonUtils.deepEquals(this.category, other.category)
+  }
+
+  override fun hashCode(): Int {
+    var result = javaClass.hashCode()
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.category)
+    return result
+  }
+}
+
+/**
+ * The response of the SDK containing campaigns.
+ * @basicnodoc
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class PlaytimeCampaignsResponse (
+  /** The requested selection of campaigns. */
+  val campaigns: List<PlaytimeCampaign?>
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): PlaytimeCampaignsResponse {
+      val campaigns = pigeonVar_list[0] as List<PlaytimeCampaign?>
+      return PlaytimeCampaignsResponse(campaigns)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      campaigns,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other == null || other.javaClass != javaClass) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    val other = other as PlaytimeCampaignsResponse
+    return PlaytimePigeonUtils.deepEquals(this.campaigns, other.campaigns)
+  }
+
+  override fun hashCode(): Int {
+    var result = javaClass.hashCode()
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.campaigns)
+    return result
+  }
+}
+
+/**
+ * The model that represents a campaign and/or installed application.
+ * @basicnodoc
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class PlaytimeCampaign (
+  /** App name. */
+  val appName: String,
+  /** Short description of the app. */
+  val appDescription: String,
+  /** Unique identifier for the app. */
+  val appID: String,
+  /**
+   * ID in the format com.example.myapp.
+   *
+   * Provided on iOS only; null on Android.
+   */
+  val appBundleID: String? = null,
+  /** App installation timestamp (ISO 8601). */
+  val installedAt: String? = null,
+  /** App uninstallation timestamp (ISO 8601). */
+  val uninstalledAt: String? = null,
+  /** Time (in days) after which rewards expire after installation. */
+  val rewardingExpiresAfter: Long? = null,
+  /**
+   * Expiration timestamp (ISO 8601) denoting how long players can get rewards after
+   * installing the app.
+   */
+  val rewardingExpiresAt: String? = null,
+  /**
+   * Timestamp (ISO 8601) denoting the maximum amount of time after fetching the campaign
+   * that it can be installed.
+   */
+  val campaignExpiresAt: String? = null,
+  /** Event and rewards configuration. */
+  val eventConfig: PlaytimeEventConfig? = null,
+  /** App category. */
+  val appCategory: String? = null,
+  /** Campaign type. */
+  val campaignType: String? = null,
+  /** Ordered position for specific featured campaigns. */
+  val featuredPosition: Long? = null,
+  /** eCPM of the campaign. */
+  val score: Double? = null,
+  /** Campaign media assets (portrait & landscape). */
+  val image: PlaytimeMedia? = null,
+  /** Campaign video media assets. */
+  val video: PlaytimeMedia? = null,
+  /** URL to the campaign icon image. */
+  val iconImage: String? = null,
+  /** Active promotion details, if any. */
+  val promotion: PlaytimePromotion? = null,
+  /** Flag indicating whether all rewards have been collected. */
+  val isCompleted: Boolean,
+  /** Campaign UUID. */
+  val campaignUUID: String? = null,
+  /** Current status of the campaign. */
+  val status: PlaytimeCampaignStatus,
+  /** Flag indicating whether CPA is enabled. */
+  val isCpa: Boolean,
+  /** CPA of the campaign. */
+  val cpa: Double,
+  /** The campaign token. */
+  val token: String
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): PlaytimeCampaign {
+      val appName = pigeonVar_list[0] as String
+      val appDescription = pigeonVar_list[1] as String
+      val appID = pigeonVar_list[2] as String
+      val appBundleID = pigeonVar_list[3] as String?
+      val installedAt = pigeonVar_list[4] as String?
+      val uninstalledAt = pigeonVar_list[5] as String?
+      val rewardingExpiresAfter = pigeonVar_list[6] as Long?
+      val rewardingExpiresAt = pigeonVar_list[7] as String?
+      val campaignExpiresAt = pigeonVar_list[8] as String?
+      val eventConfig = pigeonVar_list[9] as PlaytimeEventConfig?
+      val appCategory = pigeonVar_list[10] as String?
+      val campaignType = pigeonVar_list[11] as String?
+      val featuredPosition = pigeonVar_list[12] as Long?
+      val score = pigeonVar_list[13] as Double?
+      val image = pigeonVar_list[14] as PlaytimeMedia?
+      val video = pigeonVar_list[15] as PlaytimeMedia?
+      val iconImage = pigeonVar_list[16] as String?
+      val promotion = pigeonVar_list[17] as PlaytimePromotion?
+      val isCompleted = pigeonVar_list[18] as Boolean
+      val campaignUUID = pigeonVar_list[19] as String?
+      val status = pigeonVar_list[20] as PlaytimeCampaignStatus
+      val isCpa = pigeonVar_list[21] as Boolean
+      val cpa = pigeonVar_list[22] as Double
+      val token = pigeonVar_list[23] as String
+      return PlaytimeCampaign(appName, appDescription, appID, appBundleID, installedAt, uninstalledAt, rewardingExpiresAfter, rewardingExpiresAt, campaignExpiresAt, eventConfig, appCategory, campaignType, featuredPosition, score, image, video, iconImage, promotion, isCompleted, campaignUUID, status, isCpa, cpa, token)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      appName,
+      appDescription,
+      appID,
+      appBundleID,
+      installedAt,
+      uninstalledAt,
+      rewardingExpiresAfter,
+      rewardingExpiresAt,
+      campaignExpiresAt,
+      eventConfig,
+      appCategory,
+      campaignType,
+      featuredPosition,
+      score,
+      image,
+      video,
+      iconImage,
+      promotion,
+      isCompleted,
+      campaignUUID,
+      status,
+      isCpa,
+      cpa,
+      token,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other == null || other.javaClass != javaClass) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    val other = other as PlaytimeCampaign
+    return PlaytimePigeonUtils.deepEquals(this.appName, other.appName) && PlaytimePigeonUtils.deepEquals(this.appDescription, other.appDescription) && PlaytimePigeonUtils.deepEquals(this.appID, other.appID) && PlaytimePigeonUtils.deepEquals(this.appBundleID, other.appBundleID) && PlaytimePigeonUtils.deepEquals(this.installedAt, other.installedAt) && PlaytimePigeonUtils.deepEquals(this.uninstalledAt, other.uninstalledAt) && PlaytimePigeonUtils.deepEquals(this.rewardingExpiresAfter, other.rewardingExpiresAfter) && PlaytimePigeonUtils.deepEquals(this.rewardingExpiresAt, other.rewardingExpiresAt) && PlaytimePigeonUtils.deepEquals(this.campaignExpiresAt, other.campaignExpiresAt) && PlaytimePigeonUtils.deepEquals(this.eventConfig, other.eventConfig) && PlaytimePigeonUtils.deepEquals(this.appCategory, other.appCategory) && PlaytimePigeonUtils.deepEquals(this.campaignType, other.campaignType) && PlaytimePigeonUtils.deepEquals(this.featuredPosition, other.featuredPosition) && PlaytimePigeonUtils.deepEquals(this.score, other.score) && PlaytimePigeonUtils.deepEquals(this.image, other.image) && PlaytimePigeonUtils.deepEquals(this.video, other.video) && PlaytimePigeonUtils.deepEquals(this.iconImage, other.iconImage) && PlaytimePigeonUtils.deepEquals(this.promotion, other.promotion) && PlaytimePigeonUtils.deepEquals(this.isCompleted, other.isCompleted) && PlaytimePigeonUtils.deepEquals(this.campaignUUID, other.campaignUUID) && PlaytimePigeonUtils.deepEquals(this.status, other.status) && PlaytimePigeonUtils.deepEquals(this.isCpa, other.isCpa) && PlaytimePigeonUtils.deepEquals(this.cpa, other.cpa) && PlaytimePigeonUtils.deepEquals(this.token, other.token)
+  }
+
+  override fun hashCode(): Int {
+    var result = javaClass.hashCode()
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.appName)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.appDescription)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.appID)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.appBundleID)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.installedAt)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.uninstalledAt)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.rewardingExpiresAfter)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.rewardingExpiresAt)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.campaignExpiresAt)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.eventConfig)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.appCategory)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.campaignType)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.featuredPosition)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.score)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.image)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.video)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.iconImage)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.promotion)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.isCompleted)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.campaignUUID)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.status)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.isCpa)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.cpa)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.token)
+    return result
+  }
+}
+
+/**
+ * A class representing a media item.
+ * @basicnodoc
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class PlaytimeMedia (
+  /** URL to portrait-oriented media. */
+  val portrait: String? = null,
+  /** URL to landscape-oriented media. */
+  val landscape: String? = null
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): PlaytimeMedia {
+      val portrait = pigeonVar_list[0] as String?
+      val landscape = pigeonVar_list[1] as String?
+      return PlaytimeMedia(portrait, landscape)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      portrait,
+      landscape,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other == null || other.javaClass != javaClass) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    val other = other as PlaytimeMedia
+    return PlaytimePigeonUtils.deepEquals(this.portrait, other.portrait) && PlaytimePigeonUtils.deepEquals(this.landscape, other.landscape)
+  }
+
+  override fun hashCode(): Int {
+    var result = javaClass.hashCode()
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.portrait)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.landscape)
     return result
   }
 }
@@ -658,7 +1299,7 @@ data class PlaytimePromotion (
   val startTime: String? = null,
   /** Promotion end timestamp (ISO 8601). */
   val endTime: String? = null,
-  /** Targeting type for high quality users. */
+  /** Targeting type for promotion. */
   val targetingType: String? = null
 )
  {
@@ -707,71 +1348,22 @@ data class PlaytimePromotion (
 }
 
 /**
- * A interface representing a media item.
- * @basicnodoc
- *
- * Generated class from Pigeon that represents data sent in messages.
- */
-data class PlaytimeMedia (
-  /** URL to portrait-oriented media. */
-  val portrait: String? = null,
-  /** URL to landscape-oriented media. */
-  val landscape: String? = null
-)
- {
-  companion object {
-    fun fromList(pigeonVar_list: List<Any?>): PlaytimeMedia {
-      val portrait = pigeonVar_list[0] as String?
-      val landscape = pigeonVar_list[1] as String?
-      return PlaytimeMedia(portrait, landscape)
-    }
-  }
-  fun toList(): List<Any?> {
-    return listOf(
-      portrait,
-      landscape,
-    )
-  }
-  override fun equals(other: Any?): Boolean {
-    if (other == null || other.javaClass != javaClass) {
-      return false
-    }
-    if (this === other) {
-      return true
-    }
-    val other = other as PlaytimeMedia
-    return PlaytimePigeonUtils.deepEquals(this.portrait, other.portrait) && PlaytimePigeonUtils.deepEquals(this.landscape, other.landscape)
-  }
-
-  override fun hashCode(): Int {
-    var result = javaClass.hashCode()
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.portrait)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.landscape)
-    return result
-  }
-}
-
-/**
  * Configuration for multi-event rewards.
- * The interface provides detailed information about events and rewards.
  * @basicnodoc
  *
  * Generated class from Pigeon that represents data sent in messages.
  */
 data class PlaytimeEventConfig (
-  /**
-   * Array of rewarded events that must be completed in the given order.
-   * These will usually be progress events a user can reach in a game or app.
-   */
+  /** Array of rewarded events that must be completed in the given order. */
   val sequentialActions: List<PlaytimeRewardAction?>,
-  /**
-   * Array of rewarded events that can be completed in any order.
-   * These will be bonus rewards a user should get on top of the other rewards.
-   */
+  /** Array of rewarded events that can be completed in any order. */
   val bonusActions: List<PlaytimeRewardAction?>,
   /** Array of events that are rewarded based on the time played. */
   val timeBasedActions: List<PlaytimeRewardAction?>,
-  /** Array of CPA (Cost Per Action) events that reward the user for completing specific in-app actions. */
+  /**
+   * Array of CPA (Cost Per Action) events that reward the user for completing specific
+   * in-app actions.
+   */
   val cpaActions: List<PlaytimeRewardAction?>,
   /** Total coins collected by the user. */
   val totalCoinsCollected: Long? = null,
@@ -779,11 +1371,16 @@ data class PlaytimeEventConfig (
   val totalCoinsPossible: Long? = null,
   /**
    * The amount of time in seconds to the next level.
-   * Supported only on Android.
+   *
+   * Provided on Android only; null on iOS.
    */
   val secondsToNextLevel: Long? = null,
   /** Maximum possible coins for this config if there was no promotion. */
   val totalOriginalCoinsPossible: Long? = null,
+  /** Cashback reward configuration for in-app purchases. */
+  val cashbackReward: PlaytimeCashbackConfig? = null,
+  /** Array of events that multiply the rewards. */
+  val multipliersActions: List<PlaytimeRewardActionMultiplier?>,
   /** Total amount of coins for all sequential events with promotion multiplier. */
   val totalSequentialCoins: Long? = null,
   /** Total amount of coins for all sequential events without promotion multiplier. */
@@ -791,14 +1388,7 @@ data class PlaytimeEventConfig (
   /** Total amount of coins for all bonus events with promotion multiplier. */
   val totalBonusCoins: Long? = null,
   /** Total amount of coins for all bonus events without promotion multiplier. */
-  val totalOriginalBonusCoins: Long? = null,
-  /**
-   * Cashback reward configuration for in-app purchases. A missing value means that the feature
-   * is not supported for the campaign or the SDK.
-   */
-  val cashbackReward: PlaytimeCashbackConfig? = null,
-  /** Array of events that multiply the rewards. */
-  val multipliersActions: List<PlaytimeRewardActionMultiplier?>
+  val totalOriginalBonusCoins: Long? = null
 )
  {
   companion object {
@@ -811,13 +1401,13 @@ data class PlaytimeEventConfig (
       val totalCoinsPossible = pigeonVar_list[5] as Long?
       val secondsToNextLevel = pigeonVar_list[6] as Long?
       val totalOriginalCoinsPossible = pigeonVar_list[7] as Long?
-      val totalSequentialCoins = pigeonVar_list[8] as Long?
-      val totalOriginalSequentialCoins = pigeonVar_list[9] as Long?
-      val totalBonusCoins = pigeonVar_list[10] as Long?
-      val totalOriginalBonusCoins = pigeonVar_list[11] as Long?
-      val cashbackReward = pigeonVar_list[12] as PlaytimeCashbackConfig?
-      val multipliersActions = pigeonVar_list[13] as List<PlaytimeRewardActionMultiplier?>
-      return PlaytimeEventConfig(sequentialActions, bonusActions, timeBasedActions, cpaActions, totalCoinsCollected, totalCoinsPossible, secondsToNextLevel, totalOriginalCoinsPossible, totalSequentialCoins, totalOriginalSequentialCoins, totalBonusCoins, totalOriginalBonusCoins, cashbackReward, multipliersActions)
+      val cashbackReward = pigeonVar_list[8] as PlaytimeCashbackConfig?
+      val multipliersActions = pigeonVar_list[9] as List<PlaytimeRewardActionMultiplier?>
+      val totalSequentialCoins = pigeonVar_list[10] as Long?
+      val totalOriginalSequentialCoins = pigeonVar_list[11] as Long?
+      val totalBonusCoins = pigeonVar_list[12] as Long?
+      val totalOriginalBonusCoins = pigeonVar_list[13] as Long?
+      return PlaytimeEventConfig(sequentialActions, bonusActions, timeBasedActions, cpaActions, totalCoinsCollected, totalCoinsPossible, secondsToNextLevel, totalOriginalCoinsPossible, cashbackReward, multipliersActions, totalSequentialCoins, totalOriginalSequentialCoins, totalBonusCoins, totalOriginalBonusCoins)
     }
   }
   fun toList(): List<Any?> {
@@ -830,12 +1420,12 @@ data class PlaytimeEventConfig (
       totalCoinsPossible,
       secondsToNextLevel,
       totalOriginalCoinsPossible,
+      cashbackReward,
+      multipliersActions,
       totalSequentialCoins,
       totalOriginalSequentialCoins,
       totalBonusCoins,
       totalOriginalBonusCoins,
-      cashbackReward,
-      multipliersActions,
     )
   }
   override fun equals(other: Any?): Boolean {
@@ -846,7 +1436,7 @@ data class PlaytimeEventConfig (
       return true
     }
     val other = other as PlaytimeEventConfig
-    return PlaytimePigeonUtils.deepEquals(this.sequentialActions, other.sequentialActions) && PlaytimePigeonUtils.deepEquals(this.bonusActions, other.bonusActions) && PlaytimePigeonUtils.deepEquals(this.timeBasedActions, other.timeBasedActions) && PlaytimePigeonUtils.deepEquals(this.cpaActions, other.cpaActions) && PlaytimePigeonUtils.deepEquals(this.totalCoinsCollected, other.totalCoinsCollected) && PlaytimePigeonUtils.deepEquals(this.totalCoinsPossible, other.totalCoinsPossible) && PlaytimePigeonUtils.deepEquals(this.secondsToNextLevel, other.secondsToNextLevel) && PlaytimePigeonUtils.deepEquals(this.totalOriginalCoinsPossible, other.totalOriginalCoinsPossible) && PlaytimePigeonUtils.deepEquals(this.totalSequentialCoins, other.totalSequentialCoins) && PlaytimePigeonUtils.deepEquals(this.totalOriginalSequentialCoins, other.totalOriginalSequentialCoins) && PlaytimePigeonUtils.deepEquals(this.totalBonusCoins, other.totalBonusCoins) && PlaytimePigeonUtils.deepEquals(this.totalOriginalBonusCoins, other.totalOriginalBonusCoins) && PlaytimePigeonUtils.deepEquals(this.cashbackReward, other.cashbackReward) && PlaytimePigeonUtils.deepEquals(this.multipliersActions, other.multipliersActions)
+    return PlaytimePigeonUtils.deepEquals(this.sequentialActions, other.sequentialActions) && PlaytimePigeonUtils.deepEquals(this.bonusActions, other.bonusActions) && PlaytimePigeonUtils.deepEquals(this.timeBasedActions, other.timeBasedActions) && PlaytimePigeonUtils.deepEquals(this.cpaActions, other.cpaActions) && PlaytimePigeonUtils.deepEquals(this.totalCoinsCollected, other.totalCoinsCollected) && PlaytimePigeonUtils.deepEquals(this.totalCoinsPossible, other.totalCoinsPossible) && PlaytimePigeonUtils.deepEquals(this.secondsToNextLevel, other.secondsToNextLevel) && PlaytimePigeonUtils.deepEquals(this.totalOriginalCoinsPossible, other.totalOriginalCoinsPossible) && PlaytimePigeonUtils.deepEquals(this.cashbackReward, other.cashbackReward) && PlaytimePigeonUtils.deepEquals(this.multipliersActions, other.multipliersActions) && PlaytimePigeonUtils.deepEquals(this.totalSequentialCoins, other.totalSequentialCoins) && PlaytimePigeonUtils.deepEquals(this.totalOriginalSequentialCoins, other.totalOriginalSequentialCoins) && PlaytimePigeonUtils.deepEquals(this.totalBonusCoins, other.totalBonusCoins) && PlaytimePigeonUtils.deepEquals(this.totalOriginalBonusCoins, other.totalOriginalBonusCoins)
   }
 
   override fun hashCode(): Int {
@@ -859,12 +1449,190 @@ data class PlaytimeEventConfig (
     result = 31 * result + PlaytimePigeonUtils.deepHash(this.totalCoinsPossible)
     result = 31 * result + PlaytimePigeonUtils.deepHash(this.secondsToNextLevel)
     result = 31 * result + PlaytimePigeonUtils.deepHash(this.totalOriginalCoinsPossible)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.cashbackReward)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.multipliersActions)
     result = 31 * result + PlaytimePigeonUtils.deepHash(this.totalSequentialCoins)
     result = 31 * result + PlaytimePigeonUtils.deepHash(this.totalOriginalSequentialCoins)
     result = 31 * result + PlaytimePigeonUtils.deepHash(this.totalBonusCoins)
     result = 31 * result + PlaytimePigeonUtils.deepHash(this.totalOriginalBonusCoins)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.cashbackReward)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.multipliersActions)
+    return result
+  }
+}
+
+/**
+ * Rewarded action representation.
+ * @basicnodoc
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class PlaytimeRewardAction (
+  /** Reward action name. */
+  val name: String? = null,
+  /** Description of the task. */
+  val taskDescription: String? = null,
+  /** The level number of the time-based event. */
+  val level: Long? = null,
+  /** Type of task to complete. Possible values: sequential, bonus, playtime, cpa. */
+  val taskType: String,
+  /**
+   * Duration (in seconds) of play time required to reward a time-based event. Currently
+   * not supported on iOS.
+   */
+  val playDuration: Long? = null,
+  /** The amount of coins or rewards the user will receive upon completing the event. */
+  val amount: Long,
+  /** Timestamp when a reward was granted (ISO 8601). */
+  val rewardedAt: String? = null,
+  /** Number of times that the action can be rewarded, applicable to repetitive events. */
+  val rewardsCount: Long? = null,
+  /** Number of times that the action has been rewarded, applicable to repetitive events. */
+  val completedRewards: Long? = null,
+  /** Time window (in minutes) during which the Booster reward is applicable. */
+  val timedCoinsDuration: Long? = null,
+  /** Amount of coins rewarded during the booster period. */
+  val timedCoins: Long? = null,
+  /** The amount of coins or rewards the user would receive if there was no promotion. */
+  val originalCoins: Long? = null,
+  /** Flag indicating whether the event is a booster event. */
+  val isTimed: Boolean? = null,
+  /** Flag indicating whether the event has been rewarded with promotion. */
+  val isRewardedForPromotion: Boolean? = null,
+  /** Timestamp (ISO 8601) indicating when the booster reward expires. */
+  val boosterExpiresAt: String? = null
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): PlaytimeRewardAction {
+      val name = pigeonVar_list[0] as String?
+      val taskDescription = pigeonVar_list[1] as String?
+      val level = pigeonVar_list[2] as Long?
+      val taskType = pigeonVar_list[3] as String
+      val playDuration = pigeonVar_list[4] as Long?
+      val amount = pigeonVar_list[5] as Long
+      val rewardedAt = pigeonVar_list[6] as String?
+      val rewardsCount = pigeonVar_list[7] as Long?
+      val completedRewards = pigeonVar_list[8] as Long?
+      val timedCoinsDuration = pigeonVar_list[9] as Long?
+      val timedCoins = pigeonVar_list[10] as Long?
+      val originalCoins = pigeonVar_list[11] as Long?
+      val isTimed = pigeonVar_list[12] as Boolean?
+      val isRewardedForPromotion = pigeonVar_list[13] as Boolean?
+      val boosterExpiresAt = pigeonVar_list[14] as String?
+      return PlaytimeRewardAction(name, taskDescription, level, taskType, playDuration, amount, rewardedAt, rewardsCount, completedRewards, timedCoinsDuration, timedCoins, originalCoins, isTimed, isRewardedForPromotion, boosterExpiresAt)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      name,
+      taskDescription,
+      level,
+      taskType,
+      playDuration,
+      amount,
+      rewardedAt,
+      rewardsCount,
+      completedRewards,
+      timedCoinsDuration,
+      timedCoins,
+      originalCoins,
+      isTimed,
+      isRewardedForPromotion,
+      boosterExpiresAt,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other == null || other.javaClass != javaClass) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    val other = other as PlaytimeRewardAction
+    return PlaytimePigeonUtils.deepEquals(this.name, other.name) && PlaytimePigeonUtils.deepEquals(this.taskDescription, other.taskDescription) && PlaytimePigeonUtils.deepEquals(this.level, other.level) && PlaytimePigeonUtils.deepEquals(this.taskType, other.taskType) && PlaytimePigeonUtils.deepEquals(this.playDuration, other.playDuration) && PlaytimePigeonUtils.deepEquals(this.amount, other.amount) && PlaytimePigeonUtils.deepEquals(this.rewardedAt, other.rewardedAt) && PlaytimePigeonUtils.deepEquals(this.rewardsCount, other.rewardsCount) && PlaytimePigeonUtils.deepEquals(this.completedRewards, other.completedRewards) && PlaytimePigeonUtils.deepEquals(this.timedCoinsDuration, other.timedCoinsDuration) && PlaytimePigeonUtils.deepEquals(this.timedCoins, other.timedCoins) && PlaytimePigeonUtils.deepEquals(this.originalCoins, other.originalCoins) && PlaytimePigeonUtils.deepEquals(this.isTimed, other.isTimed) && PlaytimePigeonUtils.deepEquals(this.isRewardedForPromotion, other.isRewardedForPromotion) && PlaytimePigeonUtils.deepEquals(this.boosterExpiresAt, other.boosterExpiresAt)
+  }
+
+  override fun hashCode(): Int {
+    var result = javaClass.hashCode()
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.name)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.taskDescription)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.level)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.taskType)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.playDuration)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.amount)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.rewardedAt)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.rewardsCount)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.completedRewards)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.timedCoinsDuration)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.timedCoins)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.originalCoins)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.isTimed)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.isRewardedForPromotion)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.boosterExpiresAt)
+    return result
+  }
+}
+
+/**
+ * Configuration for a multiplier event that multiplies rewards.
+ * @basicnodoc
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class PlaytimeRewardActionMultiplier (
+  /** The event's name. */
+  val eventName: String? = null,
+  /** The event's description. */
+  val eventDescription: String? = null,
+  /** Multiplication factor of the coin for the multiplier event (0-100). */
+  val multiplierFactorPercentage: Long? = null,
+  /** Maximum number of levels that can be multiplied by the event. */
+  val multiplierLevels: Long? = null,
+  /** Status of the multiplied event: Pending, Active, or Finished. */
+  val status: String? = null,
+  /** Number of levels that has been multiplied by the event. */
+  val usedLevels: Long? = null
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): PlaytimeRewardActionMultiplier {
+      val eventName = pigeonVar_list[0] as String?
+      val eventDescription = pigeonVar_list[1] as String?
+      val multiplierFactorPercentage = pigeonVar_list[2] as Long?
+      val multiplierLevels = pigeonVar_list[3] as Long?
+      val status = pigeonVar_list[4] as String?
+      val usedLevels = pigeonVar_list[5] as Long?
+      return PlaytimeRewardActionMultiplier(eventName, eventDescription, multiplierFactorPercentage, multiplierLevels, status, usedLevels)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      eventName,
+      eventDescription,
+      multiplierFactorPercentage,
+      multiplierLevels,
+      status,
+      usedLevels,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other == null || other.javaClass != javaClass) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    val other = other as PlaytimeRewardActionMultiplier
+    return PlaytimePigeonUtils.deepEquals(this.eventName, other.eventName) && PlaytimePigeonUtils.deepEquals(this.eventDescription, other.eventDescription) && PlaytimePigeonUtils.deepEquals(this.multiplierFactorPercentage, other.multiplierFactorPercentage) && PlaytimePigeonUtils.deepEquals(this.multiplierLevels, other.multiplierLevels) && PlaytimePigeonUtils.deepEquals(this.status, other.status) && PlaytimePigeonUtils.deepEquals(this.usedLevels, other.usedLevels)
+  }
+
+  override fun hashCode(): Int {
+    var result = javaClass.hashCode()
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.eventName)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.eventDescription)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.multiplierFactorPercentage)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.multiplierLevels)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.status)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.usedLevels)
     return result
   }
 }
@@ -876,7 +1644,7 @@ data class PlaytimeEventConfig (
  * Generated class from Pigeon that represents data sent in messages.
  */
 data class PlaytimeCashbackConfig (
-  /** Amount of coins that is to be rewarded per 1 USD of IAP. */
+  /** Amount of coins rewarded per 1 USD of IAP. */
   val exchangeRate: Double? = null,
   /** Description of the cashback reward. */
   val cashbackDescription: String? = null,
@@ -944,13 +1712,13 @@ data class PlaytimeCashbackReward (
   /** Total amount of coins for given rewarded events group. */
   val totalCoins: Long? = null,
   /** Events in the reward group. */
-  val events: List<PlaytimeCashbackRewardEvent?>? = null
+  val events: List<PlaytimeCashbackRewardEvent?>
 )
  {
   companion object {
     fun fromList(pigeonVar_list: List<Any?>): PlaytimeCashbackReward {
       val totalCoins = pigeonVar_list[0] as Long?
-      val events = pigeonVar_list[1] as List<PlaytimeCashbackRewardEvent?>?
+      val events = pigeonVar_list[1] as List<PlaytimeCashbackRewardEvent?>
       return PlaytimeCashbackReward(totalCoins, events)
     }
   }
@@ -988,9 +1756,9 @@ data class PlaytimeCashbackReward (
 data class PlaytimeCashbackRewardEvent (
   /** Amount of coins granted for the event. */
   val coins: Long? = null,
-  /** Timestamp (ISO 8601). */
+  /** Timestamp (ISO 8601) when the event is processed. */
   val processAt: String? = null,
-  /** Timestamp (ISO 8601). */
+  /** Timestamp (ISO 8601) when the event is received. */
   val receivedAt: String? = null
 )
  {
@@ -1028,457 +1796,152 @@ data class PlaytimeCashbackRewardEvent (
     return result
   }
 }
-
-/**
- * The class provides detailed information about events that multiply rewards.
- * @basicnodoc
- *
- * Generated class from Pigeon that represents data sent in messages.
- */
-data class PlaytimeRewardActionMultiplier (
-  /** Return the event's name */
-  val eventName: String? = null,
-  /** Returns the event's description */
-  val eventDescription: String? = null,
-  /** Return the multiplication factor of the coin for the multiplier event. value: 0-100 */
-  val multiplierFactorPercentage: Long? = null,
-  /** Returns the maximum number of levels that can be multiplied by the event */
-  val multiplierLevels: Long? = null,
-  /**
-   * Return the status of the multiplied event:
-   * "Pending": multiplier events not used yet
-   * "Active": multiplier event is currently active
-   * "Finished": multiplier event has been used and finished
-   */
-  val status: String? = null,
-  /** Returns the number of levels that has been multiplied by the event */
-  val usedLevels: Long? = null
-)
- {
-  companion object {
-    fun fromList(pigeonVar_list: List<Any?>): PlaytimeRewardActionMultiplier {
-      val eventName = pigeonVar_list[0] as String?
-      val eventDescription = pigeonVar_list[1] as String?
-      val multiplierFactorPercentage = pigeonVar_list[2] as Long?
-      val multiplierLevels = pigeonVar_list[3] as Long?
-      val status = pigeonVar_list[4] as String?
-      val usedLevels = pigeonVar_list[5] as Long?
-      return PlaytimeRewardActionMultiplier(eventName, eventDescription, multiplierFactorPercentage, multiplierLevels, status, usedLevels)
-    }
-  }
-  fun toList(): List<Any?> {
-    return listOf(
-      eventName,
-      eventDescription,
-      multiplierFactorPercentage,
-      multiplierLevels,
-      status,
-      usedLevels,
-    )
-  }
-  override fun equals(other: Any?): Boolean {
-    if (other == null || other.javaClass != javaClass) {
-      return false
-    }
-    if (this === other) {
-      return true
-    }
-    val other = other as PlaytimeRewardActionMultiplier
-    return PlaytimePigeonUtils.deepEquals(this.eventName, other.eventName) && PlaytimePigeonUtils.deepEquals(this.eventDescription, other.eventDescription) && PlaytimePigeonUtils.deepEquals(this.multiplierFactorPercentage, other.multiplierFactorPercentage) && PlaytimePigeonUtils.deepEquals(this.multiplierLevels, other.multiplierLevels) && PlaytimePigeonUtils.deepEquals(this.status, other.status) && PlaytimePigeonUtils.deepEquals(this.usedLevels, other.usedLevels)
-  }
-
-  override fun hashCode(): Int {
-    var result = javaClass.hashCode()
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.eventName)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.eventDescription)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.multiplierFactorPercentage)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.multiplierLevels)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.status)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.usedLevels)
-    return result
-  }
-}
-
-/**
- * The model that represents a campaign and/or installed application.
- * @basicnodoc
- *
- * Generated class from Pigeon that represents data sent in messages.
- */
-data class PlaytimeCampaign (
-  /** Campaign UUID */
-  val campaignUUID: String? = null,
-  /** App name. */
-  val appName: String,
-  /** Short description of the app. */
-  val appDescription: String,
-  /**
-   * Unique identifier for the app.
-   * On Android, it’s represented by a string in the format com.example.myapp.
-   * On iOS, it’s App Store ID.
-   */
-  val appID: String,
-  /** On iOS, it’s the ID in the format com.example.myapp. */
-  val appBundleID: String? = null,
-  /** On iOS, it’s application's store ID number that is part of the App Store link. */
-  val appStoreID: String? = null,
-  /** App installation timestamp (ISO 8601). */
-  val installedAt: String? = null,
-  /** App uninstallation timestamp (ISO 8601). */
-  val uninstalledAt: String? = null,
-  /** Time (in days) after which rewards expire after installation. */
-  val rewardingExpiresAfter: Long? = null,
-  /**
-   * Expiration timestamp (ISO 8601) denoting how long players can get
-   * rewards after installing the app.
-   */
-  val rewardingExpiresAt: String? = null,
-  /**
-   * Timestamp (ISO 8601) denoting the maximum amount of time after
-   * fetching the campaign that it can be installed.
-   */
-  val campaignExpiresAt: String? = null,
-  /** App category. */
-  val appCategory: String? = null,
-  /** Campaign type. */
-  val campaignType: String? = null,
-  /** The ordered position for specific featured campaigns. */
-  val featuredPosition: Long? = null,
-  /** The eCPM of the campaign. */
-  val score: Double? = null,
-  /** URL to the campaign icon image. */
-  val iconImage: String? = null,
-  /** Campaign media assets (portrait & landscape). */
-  val image: PlaytimeMedia? = null,
-  /** Campaign video media assets. */
-  val video: PlaytimeMedia? = null,
-  /** Active promotion details, if any. */
-  val promotion: PlaytimePromotion? = null,
-  /** Event and rewards configuration. */
-  val eventConfig: PlaytimeEventConfig? = null,
-  /** Flag indicating whether all rewards have been collected. */
-  val isCompleted: Boolean? = null,
-  /** Current status of the campaign. */
-  val status: String? = null,
-  /** Flag indicating whether CPA is enabled. */
-  val isCpa: Boolean,
-  /** CPA of the campaign. */
-  val cpa: Double
-)
- {
-  companion object {
-    fun fromList(pigeonVar_list: List<Any?>): PlaytimeCampaign {
-      val campaignUUID = pigeonVar_list[0] as String?
-      val appName = pigeonVar_list[1] as String
-      val appDescription = pigeonVar_list[2] as String
-      val appID = pigeonVar_list[3] as String
-      val appBundleID = pigeonVar_list[4] as String?
-      val appStoreID = pigeonVar_list[5] as String?
-      val installedAt = pigeonVar_list[6] as String?
-      val uninstalledAt = pigeonVar_list[7] as String?
-      val rewardingExpiresAfter = pigeonVar_list[8] as Long?
-      val rewardingExpiresAt = pigeonVar_list[9] as String?
-      val campaignExpiresAt = pigeonVar_list[10] as String?
-      val appCategory = pigeonVar_list[11] as String?
-      val campaignType = pigeonVar_list[12] as String?
-      val featuredPosition = pigeonVar_list[13] as Long?
-      val score = pigeonVar_list[14] as Double?
-      val iconImage = pigeonVar_list[15] as String?
-      val image = pigeonVar_list[16] as PlaytimeMedia?
-      val video = pigeonVar_list[17] as PlaytimeMedia?
-      val promotion = pigeonVar_list[18] as PlaytimePromotion?
-      val eventConfig = pigeonVar_list[19] as PlaytimeEventConfig?
-      val isCompleted = pigeonVar_list[20] as Boolean?
-      val status = pigeonVar_list[21] as String?
-      val isCpa = pigeonVar_list[22] as Boolean
-      val cpa = pigeonVar_list[23] as Double
-      return PlaytimeCampaign(campaignUUID, appName, appDescription, appID, appBundleID, appStoreID, installedAt, uninstalledAt, rewardingExpiresAfter, rewardingExpiresAt, campaignExpiresAt, appCategory, campaignType, featuredPosition, score, iconImage, image, video, promotion, eventConfig, isCompleted, status, isCpa, cpa)
-    }
-  }
-  fun toList(): List<Any?> {
-    return listOf(
-      campaignUUID,
-      appName,
-      appDescription,
-      appID,
-      appBundleID,
-      appStoreID,
-      installedAt,
-      uninstalledAt,
-      rewardingExpiresAfter,
-      rewardingExpiresAt,
-      campaignExpiresAt,
-      appCategory,
-      campaignType,
-      featuredPosition,
-      score,
-      iconImage,
-      image,
-      video,
-      promotion,
-      eventConfig,
-      isCompleted,
-      status,
-      isCpa,
-      cpa,
-    )
-  }
-  override fun equals(other: Any?): Boolean {
-    if (other == null || other.javaClass != javaClass) {
-      return false
-    }
-    if (this === other) {
-      return true
-    }
-    val other = other as PlaytimeCampaign
-    return PlaytimePigeonUtils.deepEquals(this.campaignUUID, other.campaignUUID) && PlaytimePigeonUtils.deepEquals(this.appName, other.appName) && PlaytimePigeonUtils.deepEquals(this.appDescription, other.appDescription) && PlaytimePigeonUtils.deepEquals(this.appID, other.appID) && PlaytimePigeonUtils.deepEquals(this.appBundleID, other.appBundleID) && PlaytimePigeonUtils.deepEquals(this.appStoreID, other.appStoreID) && PlaytimePigeonUtils.deepEquals(this.installedAt, other.installedAt) && PlaytimePigeonUtils.deepEquals(this.uninstalledAt, other.uninstalledAt) && PlaytimePigeonUtils.deepEquals(this.rewardingExpiresAfter, other.rewardingExpiresAfter) && PlaytimePigeonUtils.deepEquals(this.rewardingExpiresAt, other.rewardingExpiresAt) && PlaytimePigeonUtils.deepEquals(this.campaignExpiresAt, other.campaignExpiresAt) && PlaytimePigeonUtils.deepEquals(this.appCategory, other.appCategory) && PlaytimePigeonUtils.deepEquals(this.campaignType, other.campaignType) && PlaytimePigeonUtils.deepEquals(this.featuredPosition, other.featuredPosition) && PlaytimePigeonUtils.deepEquals(this.score, other.score) && PlaytimePigeonUtils.deepEquals(this.iconImage, other.iconImage) && PlaytimePigeonUtils.deepEquals(this.image, other.image) && PlaytimePigeonUtils.deepEquals(this.video, other.video) && PlaytimePigeonUtils.deepEquals(this.promotion, other.promotion) && PlaytimePigeonUtils.deepEquals(this.eventConfig, other.eventConfig) && PlaytimePigeonUtils.deepEquals(this.isCompleted, other.isCompleted) && PlaytimePigeonUtils.deepEquals(this.status, other.status) && PlaytimePigeonUtils.deepEquals(this.isCpa, other.isCpa) && PlaytimePigeonUtils.deepEquals(this.cpa, other.cpa)
-  }
-
-  override fun hashCode(): Int {
-    var result = javaClass.hashCode()
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.campaignUUID)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.appName)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.appDescription)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.appID)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.appBundleID)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.appStoreID)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.installedAt)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.uninstalledAt)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.rewardingExpiresAfter)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.rewardingExpiresAt)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.campaignExpiresAt)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.appCategory)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.campaignType)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.featuredPosition)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.score)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.iconImage)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.image)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.video)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.promotion)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.eventConfig)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.isCompleted)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.status)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.isCpa)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.cpa)
-    return result
-  }
-}
-
-/**
- * The response of the SDK containing campaigns.
- * @basicnodoc
- *
- * Generated class from Pigeon that represents data sent in messages.
- */
-data class PlaytimeCampaignsResponse (
-  /** The requested selection of campaigns. */
-  val campaigns: List<PlaytimeCampaign?>
-)
- {
-  companion object {
-    fun fromList(pigeonVar_list: List<Any?>): PlaytimeCampaignsResponse {
-      val campaigns = pigeonVar_list[0] as List<PlaytimeCampaign?>
-      return PlaytimeCampaignsResponse(campaigns)
-    }
-  }
-  fun toList(): List<Any?> {
-    return listOf(
-      campaigns,
-    )
-  }
-  override fun equals(other: Any?): Boolean {
-    if (other == null || other.javaClass != javaClass) {
-      return false
-    }
-    if (this === other) {
-      return true
-    }
-    val other = other as PlaytimeCampaignsResponse
-    return PlaytimePigeonUtils.deepEquals(this.campaigns, other.campaigns)
-  }
-
-  override fun hashCode(): Int {
-    var result = javaClass.hashCode()
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.campaigns)
-    return result
-  }
-}
-
-/**
- * Permissions granted by the user.
- * @basicnodoc
- *
- * Generated class from Pigeon that represents data sent in messages.
- */
-data class PlaytimePermissions (
-  /** Flag indicating whether the terms of service are accepted. */
-  val isTOSAccepted: Boolean,
-  /** Flag indicating whether the usage permission is accepted. */
-  val isUsagePermissionAccepted: Boolean
-)
- {
-  companion object {
-    fun fromList(pigeonVar_list: List<Any?>): PlaytimePermissions {
-      val isTOSAccepted = pigeonVar_list[0] as Boolean
-      val isUsagePermissionAccepted = pigeonVar_list[1] as Boolean
-      return PlaytimePermissions(isTOSAccepted, isUsagePermissionAccepted)
-    }
-  }
-  fun toList(): List<Any?> {
-    return listOf(
-      isTOSAccepted,
-      isUsagePermissionAccepted,
-    )
-  }
-  override fun equals(other: Any?): Boolean {
-    if (other == null || other.javaClass != javaClass) {
-      return false
-    }
-    if (this === other) {
-      return true
-    }
-    val other = other as PlaytimePermissions
-    return PlaytimePigeonUtils.deepEquals(this.isTOSAccepted, other.isTOSAccepted) && PlaytimePigeonUtils.deepEquals(this.isUsagePermissionAccepted, other.isUsagePermissionAccepted)
-  }
-
-  override fun hashCode(): Int {
-    var result = javaClass.hashCode()
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.isTOSAccepted)
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.isUsagePermissionAccepted)
-    return result
-  }
-}
-
-/**
- * SDK response containing permissions.
- * @basicnodoc
- *
- * Generated class from Pigeon that represents data sent in messages.
- */
-data class PlaytimePermissionsResponse (
-  /** Permissions granted by the user. */
-  val permissions: PlaytimePermissions
-)
- {
-  companion object {
-    fun fromList(pigeonVar_list: List<Any?>): PlaytimePermissionsResponse {
-      val permissions = pigeonVar_list[0] as PlaytimePermissions
-      return PlaytimePermissionsResponse(permissions)
-    }
-  }
-  fun toList(): List<Any?> {
-    return listOf(
-      permissions,
-    )
-  }
-  override fun equals(other: Any?): Boolean {
-    if (other == null || other.javaClass != javaClass) {
-      return false
-    }
-    if (this === other) {
-      return true
-    }
-    val other = other as PlaytimePermissionsResponse
-    return PlaytimePigeonUtils.deepEquals(this.permissions, other.permissions)
-  }
-
-  override fun hashCode(): Int {
-    var result = javaClass.hashCode()
-    result = 31 * result + PlaytimePigeonUtils.deepHash(this.permissions)
-    return result
-  }
-}
 private open class PlaytimePigeonCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
     return when (type) {
       129.toByte() -> {
-        return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeExtensions.fromList(it)
+        return (readValue(buffer) as Long?)?.let {
+          PlaytimeGender.ofRaw(it.toInt())
         }
       }
       130.toByte() -> {
-        return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeOptions.fromList(it)
+        return (readValue(buffer) as Long?)?.let {
+          PlaytimeCampaignsState.ofRaw(it.toInt())
         }
       }
       131.toByte() -> {
-        return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeStatusDetails.fromList(it)
+        return (readValue(buffer) as Long?)?.let {
+          PlaytimeCampaignStatus.ofRaw(it.toInt())
         }
       }
       132.toByte() -> {
-        return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeStatus.fromList(it)
+        return (readValue(buffer) as Long?)?.let {
+          PlaytimeImpressionType.ofRaw(it.toInt())
         }
       }
       133.toByte() -> {
-        return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeParams.fromList(it)
+        return (readValue(buffer) as Long?)?.let {
+          TosConsentAction.ofRaw(it.toInt())
         }
       }
       134.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeUserProfile.fromList(it)
+          CatalogPlacement.fromList(it)
         }
       }
       135.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeRewardAction.fromList(it)
+          AppCategory.fromList(it)
         }
       }
       136.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimePromotion.fromList(it)
+          PlaytimeExtensions.fromList(it)
         }
       }
       137.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeMedia.fromList(it)
+          InitOptions.fromList(it)
         }
       }
       138.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeEventConfig.fromList(it)
+          CatalogOptions.fromList(it)
         }
       }
       139.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeCashbackConfig.fromList(it)
+          PlaytimeUserProfile.fromList(it)
         }
       }
       140.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeCashbackReward.fromList(it)
+          PlaytimeEvent.fromList(it)
         }
       }
       141.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeCashbackRewardEvent.fromList(it)
+          PlaytimeStatus.fromList(it)
         }
       }
       142.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeRewardActionMultiplier.fromList(it)
+          PlaytimeStatusDetails.fromList(it)
         }
       }
       143.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeCampaign.fromList(it)
+          PlaytimeMetadata.fromList(it)
         }
       }
       144.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeCampaignsResponse.fromList(it)
+          StudioPlacement.fromList(it)
         }
       }
       145.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimePermissions.fromList(it)
+          DisplayFormat.fromList(it)
         }
       }
       146.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimePermissionsResponse.fromList(it)
+          CampaignOptions.fromList(it)
+        }
+      }
+      147.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          InstalledCampaignOptions.fromList(it)
+        }
+      }
+      148.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          PlaytimeCampaignsResponse.fromList(it)
+        }
+      }
+      149.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          PlaytimeCampaign.fromList(it)
+        }
+      }
+      150.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          PlaytimeMedia.fromList(it)
+        }
+      }
+      151.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          PlaytimePromotion.fromList(it)
+        }
+      }
+      152.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          PlaytimeEventConfig.fromList(it)
+        }
+      }
+      153.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          PlaytimeRewardAction.fromList(it)
+        }
+      }
+      154.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          PlaytimeRewardActionMultiplier.fromList(it)
+        }
+      }
+      155.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          PlaytimeCashbackConfig.fromList(it)
+        }
+      }
+      156.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          PlaytimeCashbackReward.fromList(it)
+        }
+      }
+      157.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          PlaytimeCashbackRewardEvent.fromList(it)
         }
       }
       else -> super.readValueOfType(type, buffer)
@@ -1486,82 +1949,128 @@ private open class PlaytimePigeonCodec : StandardMessageCodec() {
   }
   override fun writeValue(stream: ByteArrayOutputStream, value: Any?)   {
     when (value) {
-      is PlaytimeExtensions -> {
+      is PlaytimeGender -> {
         stream.write(129)
-        writeValue(stream, value.toList())
+        writeValue(stream, value.raw.toLong())
       }
-      is PlaytimeOptions -> {
+      is PlaytimeCampaignsState -> {
         stream.write(130)
-        writeValue(stream, value.toList())
+        writeValue(stream, value.raw.toLong())
       }
-      is PlaytimeStatusDetails -> {
+      is PlaytimeCampaignStatus -> {
         stream.write(131)
-        writeValue(stream, value.toList())
+        writeValue(stream, value.raw.toLong())
       }
-      is PlaytimeStatus -> {
+      is PlaytimeImpressionType -> {
         stream.write(132)
-        writeValue(stream, value.toList())
+        writeValue(stream, value.raw.toLong())
       }
-      is PlaytimeParams -> {
+      is TosConsentAction -> {
         stream.write(133)
-        writeValue(stream, value.toList())
+        writeValue(stream, value.raw.toLong())
       }
-      is PlaytimeUserProfile -> {
+      is CatalogPlacement -> {
         stream.write(134)
         writeValue(stream, value.toList())
       }
-      is PlaytimeRewardAction -> {
+      is AppCategory -> {
         stream.write(135)
         writeValue(stream, value.toList())
       }
-      is PlaytimePromotion -> {
+      is PlaytimeExtensions -> {
         stream.write(136)
         writeValue(stream, value.toList())
       }
-      is PlaytimeMedia -> {
+      is InitOptions -> {
         stream.write(137)
         writeValue(stream, value.toList())
       }
-      is PlaytimeEventConfig -> {
+      is CatalogOptions -> {
         stream.write(138)
         writeValue(stream, value.toList())
       }
-      is PlaytimeCashbackConfig -> {
+      is PlaytimeUserProfile -> {
         stream.write(139)
         writeValue(stream, value.toList())
       }
-      is PlaytimeCashbackReward -> {
+      is PlaytimeEvent -> {
         stream.write(140)
         writeValue(stream, value.toList())
       }
-      is PlaytimeCashbackRewardEvent -> {
+      is PlaytimeStatus -> {
         stream.write(141)
         writeValue(stream, value.toList())
       }
-      is PlaytimeRewardActionMultiplier -> {
+      is PlaytimeStatusDetails -> {
         stream.write(142)
         writeValue(stream, value.toList())
       }
-      is PlaytimeCampaign -> {
+      is PlaytimeMetadata -> {
         stream.write(143)
         writeValue(stream, value.toList())
       }
-      is PlaytimeCampaignsResponse -> {
+      is StudioPlacement -> {
         stream.write(144)
         writeValue(stream, value.toList())
       }
-      is PlaytimePermissions -> {
+      is DisplayFormat -> {
         stream.write(145)
         writeValue(stream, value.toList())
       }
-      is PlaytimePermissionsResponse -> {
+      is CampaignOptions -> {
         stream.write(146)
+        writeValue(stream, value.toList())
+      }
+      is InstalledCampaignOptions -> {
+        stream.write(147)
+        writeValue(stream, value.toList())
+      }
+      is PlaytimeCampaignsResponse -> {
+        stream.write(148)
+        writeValue(stream, value.toList())
+      }
+      is PlaytimeCampaign -> {
+        stream.write(149)
+        writeValue(stream, value.toList())
+      }
+      is PlaytimeMedia -> {
+        stream.write(150)
+        writeValue(stream, value.toList())
+      }
+      is PlaytimePromotion -> {
+        stream.write(151)
+        writeValue(stream, value.toList())
+      }
+      is PlaytimeEventConfig -> {
+        stream.write(152)
+        writeValue(stream, value.toList())
+      }
+      is PlaytimeRewardAction -> {
+        stream.write(153)
+        writeValue(stream, value.toList())
+      }
+      is PlaytimeRewardActionMultiplier -> {
+        stream.write(154)
+        writeValue(stream, value.toList())
+      }
+      is PlaytimeCashbackConfig -> {
+        stream.write(155)
+        writeValue(stream, value.toList())
+      }
+      is PlaytimeCashbackReward -> {
+        stream.write(156)
+        writeValue(stream, value.toList())
+      }
+      is PlaytimeCashbackRewardEvent -> {
+        stream.write(157)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)
     }
   }
 }
+
+val PlaytimePigeonMethodCodec = StandardMethodCodec(PlaytimePigeonCodec())
 
 
 /**
@@ -1571,75 +2080,43 @@ private open class PlaytimePigeonCodec : StandardMessageCodec() {
  */
 interface Playtime {
   /**
-   * Initializes the Playtime SDK.
-   * You must initialize the Playtime SDK before you can use any of its features.
-   * The initialization will run asynchronously in the background
-   * Supported only on Android
-   */
-  fun init(apiKey: String, options: PlaytimeOptions?, callback: (Result<Unit>) -> Unit)
-  /**
-   * Opens a new activity that shows catalog.
-   * Supported only on Android.
-   */
-  fun showCatalog(params: PlaytimeParams?, callback: (Result<Unit>) -> Unit)
-  /**
-   * Opens a new activity that shows catalog.
+   * Initialize the Playtime SDK with the given options.
    * Supported on both Android and iOS.
    */
-  fun showCatalogWithOptions(options: PlaytimeOptions, callback: (Result<Unit>) -> Unit)
+  fun initPlaytime(options: InitOptions, callback: (Result<Unit>) -> Unit)
   /**
-   * Sets the Playtime options.
+   * Shows the Playtime catalog.
    * Supported on both Android and iOS.
    */
-  fun setPlaytimeOptions(options: PlaytimeOptions, callback: (Result<Unit>) -> Unit)
+  fun showCatalog(catalogOptions: CatalogOptions?, callback: (Result<Unit>) -> Unit)
   /**
-   * Sets the User-Acquisition (UA) parameters.
-   * Supported only on Android.
-   */
-  fun setUAParams(params: PlaytimeParams, callback: (Result<Unit>) -> Unit)
-  /**
-   * Returns the version code of the Playtime SDK.
-   * Supported only on Android.
-   */
-  fun getVersion(callback: (Result<String>) -> Unit)
-  /**
-   * Returns the version name of the Playtime SDK.
-   * Supported only on Android.
-   */
-  fun getVersionName(callback: (Result<String>) -> Unit)
-  /**
-   * Checks whether the Playtime SDK is initialized.
-   * Supported only on Android.
-   */
-  fun isInitialized(callback: (Result<Boolean>) -> Unit)
-  /**
-   * Checks whether the user has accepted the Playtime Terms of Service (TOS).
-   * Supported only on Android.
-   */
-  fun hasAcceptedTOS(callback: (Result<Boolean>) -> Unit)
-  /**
-   * Checks whether the user has given access to the usage statistics.
-   * Supported only on Android.
-   */
-  fun hasAcceptedUsagePermission(callback: (Result<Boolean>) -> Unit)
-  /**
-   * Returns the unique ID of the user by which he is identified within the Playtime services.
-   * Supported only on Android.
-   */
-  fun getUserId(callback: (Result<String?>) -> Unit)
-  /**
-   * Sends a user event to Playtime.
-   * These events help to improve the accuracy of the app recommendations for the user.
-   * Supported only on Android.
-   */
-  fun sendEvent(event: Long, extra: String, params: PlaytimeParams?, callback: (Result<Unit>) -> Unit)
-  /**
-   * Recieve the status of SDK.
-   * Supported on Android and iOS.
+   * Get the status of the SDK.
+   * Supported on both Android and iOS.
    */
   fun getStatus(callback: (Result<PlaytimeStatus>) -> Unit)
-  /** Deinitialize the SDK. This releases the resources taken up by internal components. */
+  /**
+   * Deinitialize the SDK. This releases the resources taken up by internal components.
+   * Supported on both Android and iOS.
+   */
   fun teardown(callback: (Result<Unit>) -> Unit)
+  /**
+   * Register a listener to receive Playtime SDK events.
+   *
+   * Events themselves are delivered over the [PlaytimeEvents] event channel; this
+   * method tells the native SDK to start forwarding its events onto that channel.
+   * Supported on both Android and iOS.
+   */
+  fun addEventListener(callback: (Result<Unit>) -> Unit)
+  /**
+   * Remove the currently registered Playtime SDK event listener.
+   * Supported on both Android and iOS.
+   */
+  fun removeEventListener(callback: (Result<Unit>) -> Unit)
+  /**
+   * Records that a catalog entry point became visible. This mandatory event is used for analytics to understand conversion rates from catalog visibility to catalog opens. Pass the placement for the entry point that is visible; use different placements when the app has multiple catalog entry points.
+   * Supported on both Android and iOS.
+   */
+  fun executeImpressionEvent(catalogPlacement: CatalogPlacement, callback: (Result<Unit>) -> Unit)
 
   companion object {
     /** The codec used by Playtime. */
@@ -1651,13 +2128,12 @@ interface Playtime {
     fun setUp(binaryMessenger: BinaryMessenger, api: Playtime?, messageChannelSuffix: String = "") {
       val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.Playtime.init$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.Playtime.initPlaytime$separatedMessageChannelSuffix", codec)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
-            val apiKeyArg = args[0] as String
-            val optionsArg = args[1] as PlaytimeOptions?
-            api.init(apiKeyArg, optionsArg) { result: Result<Unit> ->
+            val optionsArg = args[0] as InitOptions
+            api.initPlaytime(optionsArg) { result: Result<Unit> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(PlaytimePigeonUtils.wrapError(error))
@@ -1675,194 +2151,8 @@ interface Playtime {
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
-            val paramsArg = args[0] as PlaytimeParams?
-            api.showCatalog(paramsArg) { result: Result<Unit> ->
-              val error = result.exceptionOrNull()
-              if (error != null) {
-                reply.reply(PlaytimePigeonUtils.wrapError(error))
-              } else {
-                reply.reply(PlaytimePigeonUtils.wrapResult(null))
-              }
-            }
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.Playtime.showCatalogWithOptions$separatedMessageChannelSuffix", codec)
-        if (api != null) {
-          channel.setMessageHandler { message, reply ->
-            val args = message as List<Any?>
-            val optionsArg = args[0] as PlaytimeOptions
-            api.showCatalogWithOptions(optionsArg) { result: Result<Unit> ->
-              val error = result.exceptionOrNull()
-              if (error != null) {
-                reply.reply(PlaytimePigeonUtils.wrapError(error))
-              } else {
-                reply.reply(PlaytimePigeonUtils.wrapResult(null))
-              }
-            }
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.Playtime.setPlaytimeOptions$separatedMessageChannelSuffix", codec)
-        if (api != null) {
-          channel.setMessageHandler { message, reply ->
-            val args = message as List<Any?>
-            val optionsArg = args[0] as PlaytimeOptions
-            api.setPlaytimeOptions(optionsArg) { result: Result<Unit> ->
-              val error = result.exceptionOrNull()
-              if (error != null) {
-                reply.reply(PlaytimePigeonUtils.wrapError(error))
-              } else {
-                reply.reply(PlaytimePigeonUtils.wrapResult(null))
-              }
-            }
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.Playtime.setUAParams$separatedMessageChannelSuffix", codec)
-        if (api != null) {
-          channel.setMessageHandler { message, reply ->
-            val args = message as List<Any?>
-            val paramsArg = args[0] as PlaytimeParams
-            api.setUAParams(paramsArg) { result: Result<Unit> ->
-              val error = result.exceptionOrNull()
-              if (error != null) {
-                reply.reply(PlaytimePigeonUtils.wrapError(error))
-              } else {
-                reply.reply(PlaytimePigeonUtils.wrapResult(null))
-              }
-            }
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.Playtime.getVersion$separatedMessageChannelSuffix", codec)
-        if (api != null) {
-          channel.setMessageHandler { _, reply ->
-            api.getVersion{ result: Result<String> ->
-              val error = result.exceptionOrNull()
-              if (error != null) {
-                reply.reply(PlaytimePigeonUtils.wrapError(error))
-              } else {
-                val data = result.getOrNull()
-                reply.reply(PlaytimePigeonUtils.wrapResult(data))
-              }
-            }
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.Playtime.getVersionName$separatedMessageChannelSuffix", codec)
-        if (api != null) {
-          channel.setMessageHandler { _, reply ->
-            api.getVersionName{ result: Result<String> ->
-              val error = result.exceptionOrNull()
-              if (error != null) {
-                reply.reply(PlaytimePigeonUtils.wrapError(error))
-              } else {
-                val data = result.getOrNull()
-                reply.reply(PlaytimePigeonUtils.wrapResult(data))
-              }
-            }
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.Playtime.isInitialized$separatedMessageChannelSuffix", codec)
-        if (api != null) {
-          channel.setMessageHandler { _, reply ->
-            api.isInitialized{ result: Result<Boolean> ->
-              val error = result.exceptionOrNull()
-              if (error != null) {
-                reply.reply(PlaytimePigeonUtils.wrapError(error))
-              } else {
-                val data = result.getOrNull()
-                reply.reply(PlaytimePigeonUtils.wrapResult(data))
-              }
-            }
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.Playtime.hasAcceptedTOS$separatedMessageChannelSuffix", codec)
-        if (api != null) {
-          channel.setMessageHandler { _, reply ->
-            api.hasAcceptedTOS{ result: Result<Boolean> ->
-              val error = result.exceptionOrNull()
-              if (error != null) {
-                reply.reply(PlaytimePigeonUtils.wrapError(error))
-              } else {
-                val data = result.getOrNull()
-                reply.reply(PlaytimePigeonUtils.wrapResult(data))
-              }
-            }
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.Playtime.hasAcceptedUsagePermission$separatedMessageChannelSuffix", codec)
-        if (api != null) {
-          channel.setMessageHandler { _, reply ->
-            api.hasAcceptedUsagePermission{ result: Result<Boolean> ->
-              val error = result.exceptionOrNull()
-              if (error != null) {
-                reply.reply(PlaytimePigeonUtils.wrapError(error))
-              } else {
-                val data = result.getOrNull()
-                reply.reply(PlaytimePigeonUtils.wrapResult(data))
-              }
-            }
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.Playtime.getUserId$separatedMessageChannelSuffix", codec)
-        if (api != null) {
-          channel.setMessageHandler { _, reply ->
-            api.getUserId{ result: Result<String?> ->
-              val error = result.exceptionOrNull()
-              if (error != null) {
-                reply.reply(PlaytimePigeonUtils.wrapError(error))
-              } else {
-                val data = result.getOrNull()
-                reply.reply(PlaytimePigeonUtils.wrapResult(data))
-              }
-            }
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.Playtime.sendEvent$separatedMessageChannelSuffix", codec)
-        if (api != null) {
-          channel.setMessageHandler { message, reply ->
-            val args = message as List<Any?>
-            val eventArg = args[0] as Long
-            val extraArg = args[1] as String
-            val paramsArg = args[2] as PlaytimeParams?
-            api.sendEvent(eventArg, extraArg, paramsArg) { result: Result<Unit> ->
+            val catalogOptionsArg = args[0] as CatalogOptions?
+            api.showCatalog(catalogOptionsArg) { result: Result<Unit> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(PlaytimePigeonUtils.wrapError(error))
@@ -1910,6 +2200,59 @@ interface Playtime {
           channel.setMessageHandler(null)
         }
       }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.Playtime.addEventListener$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            api.addEventListener{ result: Result<Unit> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(PlaytimePigeonUtils.wrapError(error))
+              } else {
+                reply.reply(PlaytimePigeonUtils.wrapResult(null))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.Playtime.removeEventListener$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            api.removeEventListener{ result: Result<Unit> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(PlaytimePigeonUtils.wrapError(error))
+              } else {
+                reply.reply(PlaytimePigeonUtils.wrapResult(null))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.Playtime.executeImpressionEvent$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val catalogPlacementArg = args[0] as CatalogPlacement
+            api.executeImpressionEvent(catalogPlacementArg) { result: Result<Unit> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(PlaytimePigeonUtils.wrapError(error))
+              } else {
+                reply.reply(PlaytimePigeonUtils.wrapResult(null))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
     }
   }
 }
@@ -1922,84 +2265,96 @@ interface Playtime {
  */
 interface PlaytimeStudio {
   /**
+   * Update the user's consent to the Playtime terms of service, either accepting or
+   * withdrawing it.
+   * Supported on both Android and iOS.
+   */
+  fun updateTosConsent(action: TosConsentAction, callback: (Result<Unit>) -> Unit)
+  /**
    * Get the list of offers that a user can install.
    * Supported on both Android and iOS.
    */
-  fun getCampaigns(options: PlaytimeOptions, callback: (Result<PlaytimeCampaignsResponse>) -> Unit)
+  fun getCampaigns(campaignOptions: CampaignOptions?, callback: (Result<PlaytimeCampaignsResponse>) -> Unit)
   /**
-   * Get the list of apps the user has already installed and that will contain the progress the user has made already.
+   * Get offer details for the specified tokens.
    * Supported on both Android and iOS.
    */
-  fun getInstalledCampaigns(options: PlaytimeOptions, callback: (Result<PlaytimeCampaignsResponse>) -> Unit)
+  fun getOfferDetails(tokens: List<String?>, campaignOptions: CampaignOptions?, callback: (Result<PlaytimeCampaignsResponse>) -> Unit)
+  /**
+   * Get the list of apps the user has already installed and that will contain the progress
+   * the user has made already.
+   * Supported on both Android and iOS.
+   */
+  fun getInstalledCampaigns(options: InstalledCampaignOptions?, callback: (Result<PlaytimeCampaignsResponse>) -> Unit)
   /**
    * Use this method to forward the user to the store.
    * Supported on both Android and iOS.
    */
-  fun openInStore(campaign: PlaytimeCampaign, callback: (Result<Unit>) -> Unit)
+  fun openInStore(campaign: PlaytimeCampaign, useInlineInstall: Boolean, callback: (Result<Unit>) -> Unit)
   /**
-   * Use this method to forward the user to the app.
+   * Use this method to open installed application.
    * Supported on both Android and iOS.
    */
   fun openInstalledCampaign(campaign: PlaytimeCampaign, callback: (Result<Unit>) -> Unit)
   /**
-   * Get user's permissions.
-   * Supported only on Android.
-   */
-  fun getPermissions(callback: (Result<PlaytimePermissionsResponse>) -> Unit)
-  /**
-   * Show the prompt requesting user's permissions.
-   * Supported only on Android.
-   */
-  fun showPermissionsPrompt(callback: (Result<PlaytimePermissionsResponse>) -> Unit)
-  /**
-   * Opens the register popup for rewards connect.
-   * Supported for both android and iOS.
-   */
-  fun registerRewardsConnect(callback: (Result<Unit>) -> Unit)
-  /**
-   * Resets the rewards connect registration.
-   * Supported for both android and iOS.
-   */
-  fun resetRewardsConnect(callback: (Result<Unit>) -> Unit)
-  /**
-   * Use this method to deeplink installed apps
-   * Supported for both android and iOS.
-   */
-  fun showInstalledApps(callback: (Result<Unit>) -> Unit)
-  /**
-   * Use this method to deeplink app details
-   * Supported for both android and iOS.
-   */
-  fun showAppDetails(campaign: PlaytimeCampaign, callback: (Result<Unit>) -> Unit)
-  /**
-   * Use this method to deeplink app details with token
-   * Supported for both android and iOS.
-   */
-  fun showAppDetailsWithToken(token: String, campaignAppId: String, callback: (Result<Unit>) -> Unit)
-  /**
-   * Use this method to forward the open chatbot
-   * Supported for both android and iOS.
-   * @campaign The campaign you want to open
+   * Use this method to open chatbot.
+   * Supported on both Android and iOS.
    */
   fun openChatbot(campaign: PlaytimeCampaign?, callback: (Result<Unit>) -> Unit)
   /**
-   * Execute a engagement request for the given campaign.
-   * This method tracks view execution locally and ensures only one view tracking request
-   * is sent to the backend per campaign within a 30-minute window.
-   * Supported for both android and iOS.
-   * @campaign The campaign you want to open
-   * @engagementType The type of engagement you want to execute, values are "default" | "engaged".
-   */
-  fun executeEngagement(campaign: PlaytimeCampaign, engagementType: String, callback: (Result<Unit>) -> Unit)
-  /**
-   * Execute a engagement request for the given campaign.
-   * This method tracks view execution locally and ensures only one view tracking request
-   * is sent to the backend per campaign within a 30-minute window.
-   * @param appID App ID of the campaign.
-   * @param token Token of the campaign.
+   * Use this method to reset rewards connect.
    * Supported on both Android and iOS.
    */
-  fun executeEngagementWithToken(appID: String, token: String, callback: (Result<Unit>) -> Unit)
+  fun resetRewardsConnect(callback: (Result<Unit>) -> Unit)
+  /**
+   * Register the user with Playtime. The RewardsConnect sheet will be displayed to the
+   * user and, on pressing Connect, the following scenarios are possible:
+   * 1. If the user is not registered with Playtime, the user will be prompted to register
+   * a new passkey. This passkey will be stored on the user's device (and may be synced to
+   * iCloud) and associated with the user's Adjoe account.
+   * 2. If the user is already registered with Playtime, but the SDK is not aware of it
+   * (e.g. when the app was deleted and reinstalled), the user will be prompted to log in
+   * with the passkey stored on the device. If the passkey is not present, the will be
+   * prompted to register a new passkey.
+   * 3. The user has either registered the passkey or logged in successfully. Any subsequent
+   * call will return without error.
+   * Supported on both Android and iOS.
+   */
+  fun registerRewardsConnect(callback: (Result<Unit>) -> Unit)
+  /**
+   * Execute an impression request for the given campaign.
+   * This method tracks view execution locally and ensures only one view tracking request
+   * is sent to the backend per campaign within a 30-minute window.
+   * Supported on both Android and iOS.
+   */
+  fun executeCampaignImpression(campaign: PlaytimeCampaign, impressionType: PlaytimeImpressionType?, callback: (Result<Unit>) -> Unit)
+  /**
+   * Execute an impression request for the given offer.
+   * This method tracks view execution locally and ensures only one view tracking request
+   * is sent to the backend per campaign within a 30-minute window.
+   * Supported on both Android and iOS.
+   */
+  fun executeOfferImpression(token: String, appID: String, callback: (Result<Unit>) -> Unit)
+  /**
+   * Use this method to deeplink campaign details.
+   * Supported on both Android and iOS.
+   */
+  fun showCampaignDetails(campaign: PlaytimeCampaign, callback: (Result<Unit>) -> Unit)
+  /**
+   * Use this method to deeplink offer details using an access token and app ID.
+   * Supported on both Android and iOS.
+   */
+  fun showOfferDetails(token: String, appID: String, callback: (Result<Unit>) -> Unit)
+  /**
+   * Use this method to deeplink installed campaigns.
+   * Supported on both Android and iOS.
+   */
+  fun showInstalledCampaigns(callback: (Result<Unit>) -> Unit)
+  /**
+   * Show the prompt requesting user's permissions.
+   * Supported only on Android. Calling it on iOS fails as unsupported.
+   */
+  fun showPermissionsPrompt(callback: (Result<Unit>) -> Unit)
 
   companion object {
     /** The codec used by PlaytimeStudio. */
@@ -2011,12 +2366,52 @@ interface PlaytimeStudio {
     fun setUp(binaryMessenger: BinaryMessenger, api: PlaytimeStudio?, messageChannelSuffix: String = "") {
       val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
       run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.PlaytimeStudio.updateTosConsent$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val actionArg = args[0] as TosConsentAction
+            api.updateTosConsent(actionArg) { result: Result<Unit> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(PlaytimePigeonUtils.wrapError(error))
+              } else {
+                reply.reply(PlaytimePigeonUtils.wrapResult(null))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
         val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.PlaytimeStudio.getCampaigns$separatedMessageChannelSuffix", codec)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
-            val optionsArg = args[0] as PlaytimeOptions
-            api.getCampaigns(optionsArg) { result: Result<PlaytimeCampaignsResponse> ->
+            val campaignOptionsArg = args[0] as CampaignOptions?
+            api.getCampaigns(campaignOptionsArg) { result: Result<PlaytimeCampaignsResponse> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(PlaytimePigeonUtils.wrapError(error))
+              } else {
+                val data = result.getOrNull()
+                reply.reply(PlaytimePigeonUtils.wrapResult(data))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.PlaytimeStudio.getOfferDetails$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val tokensArg = args[0] as List<String?>
+            val campaignOptionsArg = args[1] as CampaignOptions?
+            api.getOfferDetails(tokensArg, campaignOptionsArg) { result: Result<PlaytimeCampaignsResponse> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(PlaytimePigeonUtils.wrapError(error))
@@ -2035,7 +2430,7 @@ interface PlaytimeStudio {
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
-            val optionsArg = args[0] as PlaytimeOptions
+            val optionsArg = args[0] as InstalledCampaignOptions?
             api.getInstalledCampaigns(optionsArg) { result: Result<PlaytimeCampaignsResponse> ->
               val error = result.exceptionOrNull()
               if (error != null) {
@@ -2056,7 +2451,8 @@ interface PlaytimeStudio {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
             val campaignArg = args[0] as PlaytimeCampaign
-            api.openInStore(campaignArg) { result: Result<Unit> ->
+            val useInlineInstallArg = args[1] as Boolean
+            api.openInStore(campaignArg, useInlineInstallArg) { result: Result<Unit> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(PlaytimePigeonUtils.wrapError(error))
@@ -2089,46 +2485,12 @@ interface PlaytimeStudio {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.PlaytimeStudio.getPermissions$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.PlaytimeStudio.openChatbot$separatedMessageChannelSuffix", codec)
         if (api != null) {
-          channel.setMessageHandler { _, reply ->
-            api.getPermissions{ result: Result<PlaytimePermissionsResponse> ->
-              val error = result.exceptionOrNull()
-              if (error != null) {
-                reply.reply(PlaytimePigeonUtils.wrapError(error))
-              } else {
-                val data = result.getOrNull()
-                reply.reply(PlaytimePigeonUtils.wrapResult(data))
-              }
-            }
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.PlaytimeStudio.showPermissionsPrompt$separatedMessageChannelSuffix", codec)
-        if (api != null) {
-          channel.setMessageHandler { _, reply ->
-            api.showPermissionsPrompt{ result: Result<PlaytimePermissionsResponse> ->
-              val error = result.exceptionOrNull()
-              if (error != null) {
-                reply.reply(PlaytimePigeonUtils.wrapError(error))
-              } else {
-                val data = result.getOrNull()
-                reply.reply(PlaytimePigeonUtils.wrapResult(data))
-              }
-            }
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.PlaytimeStudio.registerRewardsConnect$separatedMessageChannelSuffix", codec)
-        if (api != null) {
-          channel.setMessageHandler { _, reply ->
-            api.registerRewardsConnect{ result: Result<Unit> ->
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val campaignArg = args[0] as PlaytimeCampaign?
+            api.openChatbot(campaignArg) { result: Result<Unit> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(PlaytimePigeonUtils.wrapError(error))
@@ -2159,10 +2521,10 @@ interface PlaytimeStudio {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.PlaytimeStudio.showInstalledApps$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.PlaytimeStudio.registerRewardsConnect$separatedMessageChannelSuffix", codec)
         if (api != null) {
           channel.setMessageHandler { _, reply ->
-            api.showInstalledApps{ result: Result<Unit> ->
+            api.registerRewardsConnect{ result: Result<Unit> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(PlaytimePigeonUtils.wrapError(error))
@@ -2176,12 +2538,13 @@ interface PlaytimeStudio {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.PlaytimeStudio.showAppDetails$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.PlaytimeStudio.executeCampaignImpression$separatedMessageChannelSuffix", codec)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
             val campaignArg = args[0] as PlaytimeCampaign
-            api.showAppDetails(campaignArg) { result: Result<Unit> ->
+            val impressionTypeArg = args[1] as PlaytimeImpressionType?
+            api.executeCampaignImpression(campaignArg, impressionTypeArg) { result: Result<Unit> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(PlaytimePigeonUtils.wrapError(error))
@@ -2195,13 +2558,13 @@ interface PlaytimeStudio {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.PlaytimeStudio.showAppDetailsWithToken$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.PlaytimeStudio.executeOfferImpression$separatedMessageChannelSuffix", codec)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
             val tokenArg = args[0] as String
-            val campaignAppIdArg = args[1] as String
-            api.showAppDetailsWithToken(tokenArg, campaignAppIdArg) { result: Result<Unit> ->
+            val appIDArg = args[1] as String
+            api.executeOfferImpression(tokenArg, appIDArg) { result: Result<Unit> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(PlaytimePigeonUtils.wrapError(error))
@@ -2215,32 +2578,12 @@ interface PlaytimeStudio {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.PlaytimeStudio.openChatbot$separatedMessageChannelSuffix", codec)
-        if (api != null) {
-          channel.setMessageHandler { message, reply ->
-            val args = message as List<Any?>
-            val campaignArg = args[0] as PlaytimeCampaign?
-            api.openChatbot(campaignArg) { result: Result<Unit> ->
-              val error = result.exceptionOrNull()
-              if (error != null) {
-                reply.reply(PlaytimePigeonUtils.wrapError(error))
-              } else {
-                reply.reply(PlaytimePigeonUtils.wrapResult(null))
-              }
-            }
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.PlaytimeStudio.executeEngagement$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.PlaytimeStudio.showCampaignDetails$separatedMessageChannelSuffix", codec)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
             val campaignArg = args[0] as PlaytimeCampaign
-            val engagementTypeArg = args[1] as String
-            api.executeEngagement(campaignArg, engagementTypeArg) { result: Result<Unit> ->
+            api.showCampaignDetails(campaignArg) { result: Result<Unit> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(PlaytimePigeonUtils.wrapError(error))
@@ -2254,13 +2597,47 @@ interface PlaytimeStudio {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.PlaytimeStudio.executeEngagementWithToken$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.PlaytimeStudio.showOfferDetails$separatedMessageChannelSuffix", codec)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
-            val appIDArg = args[0] as String
-            val tokenArg = args[1] as String
-            api.executeEngagementWithToken(appIDArg, tokenArg) { result: Result<Unit> ->
+            val tokenArg = args[0] as String
+            val appIDArg = args[1] as String
+            api.showOfferDetails(tokenArg, appIDArg) { result: Result<Unit> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(PlaytimePigeonUtils.wrapError(error))
+              } else {
+                reply.reply(PlaytimePigeonUtils.wrapResult(null))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.PlaytimeStudio.showInstalledCampaigns$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            api.showInstalledCampaigns{ result: Result<Unit> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(PlaytimePigeonUtils.wrapError(error))
+              } else {
+                reply.reply(PlaytimePigeonUtils.wrapResult(null))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.PlaytimeStudio.showPermissionsPrompt$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            api.showPermissionsPrompt{ result: Result<Unit> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(PlaytimePigeonUtils.wrapError(error))
@@ -2276,3 +2653,64 @@ interface PlaytimeStudio {
     }
   }
 }
+
+private class PlaytimePigeonStreamHandler<T>(
+    val wrapper: PlaytimePigeonEventChannelWrapper<T>
+) : EventChannel.StreamHandler {
+  var pigeonSink: PigeonEventSink<T>? = null
+
+  override fun onListen(p0: Any?, sink: EventChannel.EventSink) {
+    pigeonSink = PigeonEventSink<T>(sink)
+    wrapper.onListen(p0, pigeonSink!!)
+  }
+
+  override fun onCancel(p0: Any?) {
+    pigeonSink = null
+    wrapper.onCancel(p0)
+  }
+}
+
+interface PlaytimePigeonEventChannelWrapper<T> {
+  open fun onListen(p0: Any?, sink: PigeonEventSink<T>) {}
+
+  open fun onCancel(p0: Any?) {}
+}
+
+class PigeonEventSink<T>(private val sink: EventChannel.EventSink) {
+  fun success(value: T) {
+    sink.success(value)
+  }
+
+  fun error(errorCode: String, errorMessage: String?, errorDetails: Any?) {
+    sink.error(errorCode, errorMessage, errorDetails)
+  }
+
+  fun endOfStream() {
+    sink.endOfStream()
+  }
+}
+      
+/**
+ * Streams dynamically configured SDK events from the native SDK to Dart.
+ *
+ * The host [Playtime.addEventListener] starts the native delivery; each
+ * [PlaytimeEvent] the SDK emits is forwarded over this channel and surfaced to
+ * publishers through the hand-written `PlaytimeEventListener.didReceive` callback.
+ */
+abstract class StreamEventsStreamHandler : PlaytimePigeonEventChannelWrapper<PlaytimeEvent> {
+  companion object {
+    fun register(messenger: BinaryMessenger, streamHandler: StreamEventsStreamHandler, instanceName: String = "") {
+      var channelName: String = "dev.flutter.pigeon.adjoe.PlaytimeEvents.streamEvents"
+      if (instanceName.isNotEmpty()) {
+        channelName += ".$instanceName"
+      }
+      val internalStreamHandler = PlaytimePigeonStreamHandler<PlaytimeEvent>(streamHandler)
+      EventChannel(messenger, channelName, PlaytimePigeonMethodCodec).setStreamHandler(internalStreamHandler)
+    }
+  }
+// Implement methods from PlaytimePigeonEventChannelWrapper
+override fun onListen(p0: Any?, sink: PigeonEventSink<PlaytimeEvent>) {}
+
+override fun onCancel(p0: Any?) {}
+}
+      
