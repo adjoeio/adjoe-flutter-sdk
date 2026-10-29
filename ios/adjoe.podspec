@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "adjoe"
-  s.version      = "5.0.0"
+  s.version      = "5.1.0-beta.1"
   s.summary      = "Monetization solution for iOS"
   s.description  = "A native iOS monetization solution for app publishers aiming to boost revenue and engagement through rewarded gaming and app interactions."
   s.license      = { :type => 'Commercial', :text => 'adjoe GmbH' }
@@ -16,6 +16,6 @@ Pod::Spec.new do |s|
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
   s.swift_version = '5.0'
 
-  s.dependency 'PlaytimeSDK', '5.0.0'
+  s.dependency 'PlaytimeSDK', '5.1.0-beta.1'
 
 end
