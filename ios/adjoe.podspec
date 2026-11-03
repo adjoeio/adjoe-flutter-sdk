@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "adjoe"
-  s.version      = "5.1.0"
+  s.version      = "5.1.1"
   s.summary      = "Monetization solution for iOS"
   s.description  = "A native iOS monetization solution for app publishers aiming to boost revenue and engagement through rewarded gaming and app interactions."
   s.license      = { :type => 'Commercial', :text => 'adjoe GmbH' }
