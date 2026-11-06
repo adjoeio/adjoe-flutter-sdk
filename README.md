@@ -14,7 +14,7 @@ dependencies:
   adjoe:
     git:
       url: https://github.com/adjoeio/adjoe-flutter-sdk
-      ref: v5.1.1
+      ref: v5.1.2
 ```
 3. save the `pubspec.yaml` and run a `pub get` command on your Editor/IDE or run the following command:
 ```
