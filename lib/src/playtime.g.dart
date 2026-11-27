@@ -34,6 +34,16 @@ Object? _extractReplyValueOrThrow(
   return replyList.firstOrNull;
 }
 
+
+List<Object?> wrapResponse({Object? result, PlatformException? error, bool empty = false}) {
+  if (empty) {
+    return <Object?>[];
+  }
+  if (error == null) {
+    return <Object?>[result];
+  }
+  return <Object?>[error.code, error.message, error.details];
+}
 bool _deepEquals(Object? a, Object? b) {
   if (identical(a, b)) {
     return true;
@@ -150,6 +160,14 @@ enum TosConsentAction {
   ACCEPT,
   /// Withdraw the user's previously granted consent to the terms of service.
   WITHDRAW,
+}
+
+enum ShelfStatusKind {
+  idle,
+  loading,
+  ready,
+  empty,
+  unavailable,
 }
 
 /// Represents the placement where the catalog will be shown.
@@ -1821,6 +1839,123 @@ class PlaytimeCashbackRewardEvent {
   int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
 }
 
+/// Transport options for the experimental iOS Shelf integration.
+class ShelfOptionsMessage {
+  ShelfOptionsMessage({
+    required this.placement,
+    this.requestedVariant,
+    required this.category,
+  });
+
+  String placement;
+
+  String? requestedVariant;
+
+  String category;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      placement,
+      requestedVariant,
+      category,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static ShelfOptionsMessage decode(Object result) {
+    result as List<Object?>;
+    return ShelfOptionsMessage(
+      placement: result[0]! as String,
+      requestedVariant: result[1] as String?,
+      category: result[2]! as String,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! ShelfOptionsMessage || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(placement, other.placement) && _deepEquals(requestedVariant, other.requestedVariant) && _deepEquals(category, other.category);
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+}
+
+/// A flattened transport representation of the native Shelf status.
+class ShelfStatusMessage {
+  ShelfStatusMessage({
+    required this.kind,
+    this.availableCampaigns,
+    this.installedCampaigns,
+    this.reason,
+    this.retryable,
+    this.message,
+  });
+
+  ShelfStatusKind kind;
+
+  int? availableCampaigns;
+
+  int? installedCampaigns;
+
+  String? reason;
+
+  bool? retryable;
+
+  String? message;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      kind,
+      availableCampaigns,
+      installedCampaigns,
+      reason,
+      retryable,
+      message,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static ShelfStatusMessage decode(Object result) {
+    result as List<Object?>;
+    return ShelfStatusMessage(
+      kind: result[0]! as ShelfStatusKind,
+      availableCampaigns: result[1] as int?,
+      installedCampaigns: result[2] as int?,
+      reason: result[3] as String?,
+      retryable: result[4] as bool?,
+      message: result[5] as String?,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! ShelfStatusMessage || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(kind, other.kind) && _deepEquals(availableCampaigns, other.availableCampaigns) && _deepEquals(installedCampaigns, other.installedCampaigns) && _deepEquals(reason, other.reason) && _deepEquals(retryable, other.retryable) && _deepEquals(message, other.message);
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+}
+
 
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
@@ -1844,77 +1979,86 @@ class _PigeonCodec extends StandardMessageCodec {
     }    else if (value is TosConsentAction) {
       buffer.putUint8(133);
       writeValue(buffer, value.index);
-    }    else if (value is CatalogPlacement) {
+    }    else if (value is ShelfStatusKind) {
       buffer.putUint8(134);
-      writeValue(buffer, value.encode());
-    }    else if (value is AppCategory) {
+      writeValue(buffer, value.index);
+    }    else if (value is CatalogPlacement) {
       buffer.putUint8(135);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeExtensions) {
+    }    else if (value is AppCategory) {
       buffer.putUint8(136);
       writeValue(buffer, value.encode());
-    }    else if (value is InitOptions) {
+    }    else if (value is PlaytimeExtensions) {
       buffer.putUint8(137);
       writeValue(buffer, value.encode());
-    }    else if (value is CatalogOptions) {
+    }    else if (value is InitOptions) {
       buffer.putUint8(138);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeUserProfile) {
+    }    else if (value is CatalogOptions) {
       buffer.putUint8(139);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeEvent) {
+    }    else if (value is PlaytimeUserProfile) {
       buffer.putUint8(140);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeStatus) {
+    }    else if (value is PlaytimeEvent) {
       buffer.putUint8(141);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeStatusDetails) {
+    }    else if (value is PlaytimeStatus) {
       buffer.putUint8(142);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeMetadata) {
+    }    else if (value is PlaytimeStatusDetails) {
       buffer.putUint8(143);
       writeValue(buffer, value.encode());
-    }    else if (value is StudioPlacement) {
+    }    else if (value is PlaytimeMetadata) {
       buffer.putUint8(144);
       writeValue(buffer, value.encode());
-    }    else if (value is DisplayFormat) {
+    }    else if (value is StudioPlacement) {
       buffer.putUint8(145);
       writeValue(buffer, value.encode());
-    }    else if (value is CampaignOptions) {
+    }    else if (value is DisplayFormat) {
       buffer.putUint8(146);
       writeValue(buffer, value.encode());
-    }    else if (value is InstalledCampaignOptions) {
+    }    else if (value is CampaignOptions) {
       buffer.putUint8(147);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeCampaignsResponse) {
+    }    else if (value is InstalledCampaignOptions) {
       buffer.putUint8(148);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeCampaign) {
+    }    else if (value is PlaytimeCampaignsResponse) {
       buffer.putUint8(149);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeMedia) {
+    }    else if (value is PlaytimeCampaign) {
       buffer.putUint8(150);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimePromotion) {
+    }    else if (value is PlaytimeMedia) {
       buffer.putUint8(151);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeEventConfig) {
+    }    else if (value is PlaytimePromotion) {
       buffer.putUint8(152);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeRewardAction) {
+    }    else if (value is PlaytimeEventConfig) {
       buffer.putUint8(153);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeRewardActionMultiplier) {
+    }    else if (value is PlaytimeRewardAction) {
       buffer.putUint8(154);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeCashbackConfig) {
+    }    else if (value is PlaytimeRewardActionMultiplier) {
       buffer.putUint8(155);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeCashbackReward) {
+    }    else if (value is PlaytimeCashbackConfig) {
       buffer.putUint8(156);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaytimeCashbackRewardEvent) {
+    }    else if (value is PlaytimeCashbackReward) {
       buffer.putUint8(157);
+      writeValue(buffer, value.encode());
+    }    else if (value is PlaytimeCashbackRewardEvent) {
+      buffer.putUint8(158);
+      writeValue(buffer, value.encode());
+    }    else if (value is ShelfOptionsMessage) {
+      buffer.putUint8(159);
+      writeValue(buffer, value.encode());
+    }    else if (value is ShelfStatusMessage) {
+      buffer.putUint8(160);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -1940,53 +2084,60 @@ class _PigeonCodec extends StandardMessageCodec {
         final value = readValue(buffer) as int?;
         return value == null ? null : TosConsentAction.values[value];
       case 134:
-        return CatalogPlacement.decode(readValue(buffer)!);
+        final value = readValue(buffer) as int?;
+        return value == null ? null : ShelfStatusKind.values[value];
       case 135:
-        return AppCategory.decode(readValue(buffer)!);
+        return CatalogPlacement.decode(readValue(buffer)!);
       case 136:
-        return PlaytimeExtensions.decode(readValue(buffer)!);
+        return AppCategory.decode(readValue(buffer)!);
       case 137:
-        return InitOptions.decode(readValue(buffer)!);
+        return PlaytimeExtensions.decode(readValue(buffer)!);
       case 138:
-        return CatalogOptions.decode(readValue(buffer)!);
+        return InitOptions.decode(readValue(buffer)!);
       case 139:
-        return PlaytimeUserProfile.decode(readValue(buffer)!);
+        return CatalogOptions.decode(readValue(buffer)!);
       case 140:
-        return PlaytimeEvent.decode(readValue(buffer)!);
+        return PlaytimeUserProfile.decode(readValue(buffer)!);
       case 141:
-        return PlaytimeStatus.decode(readValue(buffer)!);
+        return PlaytimeEvent.decode(readValue(buffer)!);
       case 142:
-        return PlaytimeStatusDetails.decode(readValue(buffer)!);
+        return PlaytimeStatus.decode(readValue(buffer)!);
       case 143:
-        return PlaytimeMetadata.decode(readValue(buffer)!);
+        return PlaytimeStatusDetails.decode(readValue(buffer)!);
       case 144:
-        return StudioPlacement.decode(readValue(buffer)!);
+        return PlaytimeMetadata.decode(readValue(buffer)!);
       case 145:
-        return DisplayFormat.decode(readValue(buffer)!);
+        return StudioPlacement.decode(readValue(buffer)!);
       case 146:
-        return CampaignOptions.decode(readValue(buffer)!);
+        return DisplayFormat.decode(readValue(buffer)!);
       case 147:
-        return InstalledCampaignOptions.decode(readValue(buffer)!);
+        return CampaignOptions.decode(readValue(buffer)!);
       case 148:
-        return PlaytimeCampaignsResponse.decode(readValue(buffer)!);
+        return InstalledCampaignOptions.decode(readValue(buffer)!);
       case 149:
-        return PlaytimeCampaign.decode(readValue(buffer)!);
+        return PlaytimeCampaignsResponse.decode(readValue(buffer)!);
       case 150:
-        return PlaytimeMedia.decode(readValue(buffer)!);
+        return PlaytimeCampaign.decode(readValue(buffer)!);
       case 151:
-        return PlaytimePromotion.decode(readValue(buffer)!);
+        return PlaytimeMedia.decode(readValue(buffer)!);
       case 152:
-        return PlaytimeEventConfig.decode(readValue(buffer)!);
+        return PlaytimePromotion.decode(readValue(buffer)!);
       case 153:
-        return PlaytimeRewardAction.decode(readValue(buffer)!);
+        return PlaytimeEventConfig.decode(readValue(buffer)!);
       case 154:
-        return PlaytimeRewardActionMultiplier.decode(readValue(buffer)!);
+        return PlaytimeRewardAction.decode(readValue(buffer)!);
       case 155:
-        return PlaytimeCashbackConfig.decode(readValue(buffer)!);
+        return PlaytimeRewardActionMultiplier.decode(readValue(buffer)!);
       case 156:
-        return PlaytimeCashbackReward.decode(readValue(buffer)!);
+        return PlaytimeCashbackConfig.decode(readValue(buffer)!);
       case 157:
+        return PlaytimeCashbackReward.decode(readValue(buffer)!);
+      case 158:
         return PlaytimeCashbackRewardEvent.decode(readValue(buffer)!);
+      case 159:
+        return ShelfOptionsMessage.decode(readValue(buffer)!);
+      case 160:
+        return ShelfStatusMessage.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
@@ -2315,56 +2466,6 @@ class PlaytimeStudio {
     ;
   }
 
-  /// Use this method to reset rewards connect.
-  /// Supported on both Android and iOS.
-  Future<void> resetRewardsConnect() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.resetRewardsConnect$pigeonVar_messageChannelSuffix';
-    final pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
-    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
-
-    _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
-  }
-
-  /// Register the user with Playtime. The RewardsConnect sheet will be displayed to the
-  /// user and, on pressing Connect, the following scenarios are possible:
-  /// 1. If the user is not registered with Playtime, the user will be prompted to register
-  /// a new passkey. This passkey will be stored on the user's device (and may be synced to
-  /// iCloud) and associated with the user's Adjoe account.
-  /// 2. If the user is already registered with Playtime, but the SDK is not aware of it
-  /// (e.g. when the app was deleted and reinstalled), the user will be prompted to log in
-  /// with the passkey stored on the device. If the passkey is not present, the will be
-  /// prompted to register a new passkey.
-  /// 3. The user has either registered the passkey or logged in successfully. Any subsequent
-  /// call will return without error.
-  /// Supported on both Android and iOS.
-  Future<void> registerRewardsConnect() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.PlaytimeStudio.registerRewardsConnect$pigeonVar_messageChannelSuffix';
-    final pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
-    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
-
-    _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
-  }
-
   /// Execute an impression request for the given campaign.
   /// This method tracks view execution locally and ensures only one view tracking request
   /// is sent to the backend per campaign within a 30-minute window.
@@ -2506,3 +2607,250 @@ Stream<PlaytimeEvent> streamEvents( {String instanceName = ''}) {
   });
 }
     
+
+/// Commands for independently owned, experimental iOS Shelf sessions.
+class ShelfHostApi {
+  /// Constructor for [ShelfHostApi].  The [binaryMessenger] named argument is
+  /// available for dependency injection.  If it is left null, the default
+  /// BinaryMessenger will be used which routes to the host platform.
+  ShelfHostApi({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
+      : pigeonVar_binaryMessenger = binaryMessenger,
+        pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
+  final BinaryMessenger? pigeonVar_binaryMessenger;
+
+  static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
+
+  final String pigeonVar_messageChannelSuffix;
+
+  Future<void> create(int controllerId, ShelfOptionsMessage options) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.ShelfHostApi.create$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[controllerId, options]);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
+  }
+
+  Future<void> prefetch(int controllerId) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.ShelfHostApi.prefetch$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[controllerId]);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
+  }
+
+  Future<void> refresh(int controllerId) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.ShelfHostApi.refresh$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[controllerId]);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
+  }
+
+  Future<void> attach(int controllerId, int viewId, int attachmentId) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.ShelfHostApi.attach$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[controllerId, viewId, attachmentId]);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
+  }
+
+  Future<void> measure(int controllerId, int attachmentId, double width) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.ShelfHostApi.measure$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[controllerId, attachmentId, width]);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
+  }
+
+  Future<void> detach(int controllerId, int attachmentId) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.ShelfHostApi.detach$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[controllerId, attachmentId]);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
+  }
+
+  Future<void> dispose(int controllerId) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.adjoe.ShelfHostApi.dispose$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[controllerId]);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
+  }
+}
+
+/// Native callbacks routed to one controller and, for sizes, one mounted view.
+abstract class ShelfFlutterApi {
+  static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
+
+  void statusChanged(int controllerId, ShelfStatusMessage status);
+
+  void sizeChanged(int controllerId, int attachmentId, double height);
+
+  void actionPerformed(int controllerId, String? campaignId, String actionName);
+
+  void disposed(int controllerId);
+
+  static void setUp(ShelfFlutterApi? api, {BinaryMessenger? binaryMessenger, String messageChannelSuffix = '',}) {
+    messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
+    {
+      final pigeonVar_channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.adjoe.ShelfFlutterApi.statusChanged$messageChannelSuffix', pigeonChannelCodec,
+          binaryMessenger: binaryMessenger);
+      if (api == null) {
+        pigeonVar_channel.setMessageHandler(null);
+      } else {
+        pigeonVar_channel.setMessageHandler((Object? message) async {
+          final List<Object?> args = message! as List<Object?>;
+          final int arg_controllerId = args[0]! as int;
+          final ShelfStatusMessage arg_status = args[1]! as ShelfStatusMessage;
+          try {
+            api.statusChanged(arg_controllerId, arg_status);
+            return wrapResponse(empty: true);
+          } on PlatformException catch (e) {
+            return wrapResponse(error: e);
+          }          catch (e) {
+            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          }
+        });
+      }
+    }
+    {
+      final pigeonVar_channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.adjoe.ShelfFlutterApi.sizeChanged$messageChannelSuffix', pigeonChannelCodec,
+          binaryMessenger: binaryMessenger);
+      if (api == null) {
+        pigeonVar_channel.setMessageHandler(null);
+      } else {
+        pigeonVar_channel.setMessageHandler((Object? message) async {
+          final List<Object?> args = message! as List<Object?>;
+          final int arg_controllerId = args[0]! as int;
+          final int arg_attachmentId = args[1]! as int;
+          final double arg_height = args[2]! as double;
+          try {
+            api.sizeChanged(arg_controllerId, arg_attachmentId, arg_height);
+            return wrapResponse(empty: true);
+          } on PlatformException catch (e) {
+            return wrapResponse(error: e);
+          }          catch (e) {
+            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          }
+        });
+      }
+    }
+    {
+      final pigeonVar_channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.adjoe.ShelfFlutterApi.actionPerformed$messageChannelSuffix', pigeonChannelCodec,
+          binaryMessenger: binaryMessenger);
+      if (api == null) {
+        pigeonVar_channel.setMessageHandler(null);
+      } else {
+        pigeonVar_channel.setMessageHandler((Object? message) async {
+          final List<Object?> args = message! as List<Object?>;
+          final int arg_controllerId = args[0]! as int;
+          final String? arg_campaignId = args[1] as String?;
+          final String arg_actionName = args[2]! as String;
+          try {
+            api.actionPerformed(arg_controllerId, arg_campaignId, arg_actionName);
+            return wrapResponse(empty: true);
+          } on PlatformException catch (e) {
+            return wrapResponse(error: e);
+          }          catch (e) {
+            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          }
+        });
+      }
+    }
+    {
+      final pigeonVar_channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.adjoe.ShelfFlutterApi.disposed$messageChannelSuffix', pigeonChannelCodec,
+          binaryMessenger: binaryMessenger);
+      if (api == null) {
+        pigeonVar_channel.setMessageHandler(null);
+      } else {
+        pigeonVar_channel.setMessageHandler((Object? message) async {
+          final List<Object?> args = message! as List<Object?>;
+          final int arg_controllerId = args[0]! as int;
+          try {
+            api.disposed(arg_controllerId);
+            return wrapResponse(empty: true);
+          } on PlatformException catch (e) {
+            return wrapResponse(error: e);
+          }          catch (e) {
+            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          }
+        });
+      }
+    }
+  }
+}

@@ -2,6 +2,12 @@ import Foundation
 import PlaytimeSDK
 
 class PlaytimeImpl: Playtime {
+    private let onTeardown: @MainActor () -> Void
+
+    init(onTeardown: @escaping @MainActor () -> Void = {}) {
+        self.onTeardown = onTeardown
+    }
+
     func initPlaytime(
         options: InitOptions,
         completion: @escaping (Result<Void, Error>) -> Void
@@ -49,7 +55,7 @@ class PlaytimeImpl: Playtime {
             do {
                 let statusResponse = try await PlaytimeSDK.Playtime.getStatus()
 
-                var testGroup: Int64? = nil
+                var testGroup: Int64?
                 if let statusResponseTestGroup = statusResponse.details.testGroup {
                     testGroup = Int64(statusResponseTestGroup)
                 }
@@ -94,6 +100,7 @@ class PlaytimeImpl: Playtime {
         Task {
             do {
                 try await PlaytimeSDK.Playtime.teardown()
+                await onTeardown()
                 completion(.success(()))
             } catch {
                 completion(.failure(ErrorsUtil.toPigeonError(error)))

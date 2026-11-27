@@ -157,28 +157,6 @@ class PlaytimeStudioImpl: PlaytimeStudio {
         }
     }
 
-    func resetRewardsConnect(completion: @escaping (Result<Void, Error>) -> Void) {
-        Task {
-            do {
-                try await PlaytimeSDK.PlaytimeStudio.resetRewardsConnect()
-                completion(.success(()))
-            } catch {
-                completion(.failure(ErrorsUtil.toPigeonError(error)))
-            }
-        }
-    }
-
-    func registerRewardsConnect(completion: @escaping (Result<Void, Error>) -> Void) {
-        Task {
-            do {
-                try await PlaytimeSDK.PlaytimeStudio.registerRewardsConnect()
-                completion(.success(()))
-            } catch {
-                completion(.failure(ErrorsUtil.toPigeonError(error)))
-            }
-        }
-    }
-
     func executeCampaignImpression(
         campaign: PlaytimeCampaign,
         impressionType: PlaytimeImpressionType?,

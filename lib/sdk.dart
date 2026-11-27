@@ -23,6 +23,11 @@ export 'package:adjoe/src/playtime.g.dart'
         CatalogPlacement,
         DisplayFormat,
         AppCategory,
+        ShelfOptionsMessage,
+        ShelfStatusMessage,
+        ShelfStatusKind,
+        ShelfHostApi,
+        ShelfFlutterApi,
         streamEvents;
 
 /// The hand-written sealed value types that carry the predefined constants and

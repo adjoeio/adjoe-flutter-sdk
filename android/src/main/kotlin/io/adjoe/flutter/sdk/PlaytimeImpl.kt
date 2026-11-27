@@ -258,7 +258,7 @@ internal object OptionsUtil {
     }
 }
 
-class PlaytimeImpl() : Playtime {
+class PlaytimeImpl(private val resetShelves: () -> Unit = {}) : Playtime {
     private var activity: Activity? = null
 
     fun setActivity(activity: Activity?) {
@@ -320,6 +320,7 @@ class PlaytimeImpl() : Playtime {
     override fun teardown(callback: (Result<Unit>) -> Unit) {
         val listener = object : PlaytimeTeardownListener {
             override fun onSuccess() {
+                resetShelves()
                 callback(Result.success(Unit))
             }
 

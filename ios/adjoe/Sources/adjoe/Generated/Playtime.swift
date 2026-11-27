@@ -55,6 +55,10 @@ private func wrapError(_ error: Any) -> [Any?] {
   ]
 }
 
+private func createConnectionError(withChannelName channelName: String) -> PigeonError {
+  return PigeonError(code: "channel-error", message: "Unable to establish connection on channel: '\(channelName)'.", details: "")
+}
+
 private func isNullish(_ value: Any?) -> Bool {
   return value is NSNull || value == nil
 }
@@ -227,6 +231,14 @@ enum TosConsentAction: Int, Codable {
   case aCCEPT = 0
   /// Withdraw the user's previously granted consent to the terms of service.
   case wITHDRAW = 1
+}
+
+enum ShelfStatusKind: Int, Codable {
+  case idle = 0
+  case loading = 1
+  case ready = 2
+  case empty = 3
+  case unavailable = 4
 }
 
 /// Represents the placement where the catalog will be shown.
@@ -1705,6 +1717,107 @@ struct PlaytimeCashbackRewardEvent: Codable, Hashable {
   }
 }
 
+/// Transport options for the experimental iOS Shelf integration.
+///
+/// Generated class from Pigeon that represents data sent in messages.
+struct ShelfOptionsMessage: Codable, Hashable {
+  var placement: String
+  var requestedVariant: String? = nil
+  var category: String
+
+
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  static func fromList(_ pigeonVar_list: [Any?]) -> ShelfOptionsMessage? {
+    let placement = pigeonVar_list[0] as! String
+    let requestedVariant: String? = nilOrValue(pigeonVar_list[1])
+    let category = pigeonVar_list[2] as! String
+
+    return ShelfOptionsMessage(
+      placement: placement,
+      requestedVariant: requestedVariant,
+      category: category
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      placement,
+      requestedVariant,
+      category,
+    ]
+  }
+  static func == (lhs: ShelfOptionsMessage, rhs: ShelfOptionsMessage) -> Bool {
+    if Swift.type(of: lhs) != Swift.type(of: rhs) {
+      return false
+    }
+    return deepEqualsPlaytime(lhs.placement, rhs.placement) && deepEqualsPlaytime(lhs.requestedVariant, rhs.requestedVariant) && deepEqualsPlaytime(lhs.category, rhs.category)
+  }
+
+  func hash(into hasher: inout Hasher) {
+    hasher.combine("ShelfOptionsMessage")
+    deepHashPlaytime(value: placement, hasher: &hasher)
+    deepHashPlaytime(value: requestedVariant, hasher: &hasher)
+    deepHashPlaytime(value: category, hasher: &hasher)
+  }
+}
+
+/// A flattened transport representation of the native Shelf status.
+///
+/// Generated class from Pigeon that represents data sent in messages.
+struct ShelfStatusMessage: Codable, Hashable {
+  var kind: ShelfStatusKind
+  var availableCampaigns: Int64? = nil
+  var installedCampaigns: Int64? = nil
+  var reason: String? = nil
+  var retryable: Bool? = nil
+  var message: String? = nil
+
+
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  static func fromList(_ pigeonVar_list: [Any?]) -> ShelfStatusMessage? {
+    let kind = pigeonVar_list[0] as! ShelfStatusKind
+    let availableCampaigns: Int64? = nilOrValue(pigeonVar_list[1])
+    let installedCampaigns: Int64? = nilOrValue(pigeonVar_list[2])
+    let reason: String? = nilOrValue(pigeonVar_list[3])
+    let retryable: Bool? = nilOrValue(pigeonVar_list[4])
+    let message: String? = nilOrValue(pigeonVar_list[5])
+
+    return ShelfStatusMessage(
+      kind: kind,
+      availableCampaigns: availableCampaigns,
+      installedCampaigns: installedCampaigns,
+      reason: reason,
+      retryable: retryable,
+      message: message
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      kind,
+      availableCampaigns,
+      installedCampaigns,
+      reason,
+      retryable,
+      message,
+    ]
+  }
+  static func == (lhs: ShelfStatusMessage, rhs: ShelfStatusMessage) -> Bool {
+    if Swift.type(of: lhs) != Swift.type(of: rhs) {
+      return false
+    }
+    return deepEqualsPlaytime(lhs.kind, rhs.kind) && deepEqualsPlaytime(lhs.availableCampaigns, rhs.availableCampaigns) && deepEqualsPlaytime(lhs.installedCampaigns, rhs.installedCampaigns) && deepEqualsPlaytime(lhs.reason, rhs.reason) && deepEqualsPlaytime(lhs.retryable, rhs.retryable) && deepEqualsPlaytime(lhs.message, rhs.message)
+  }
+
+  func hash(into hasher: inout Hasher) {
+    hasher.combine("ShelfStatusMessage")
+    deepHashPlaytime(value: kind, hasher: &hasher)
+    deepHashPlaytime(value: availableCampaigns, hasher: &hasher)
+    deepHashPlaytime(value: installedCampaigns, hasher: &hasher)
+    deepHashPlaytime(value: reason, hasher: &hasher)
+    deepHashPlaytime(value: retryable, hasher: &hasher)
+    deepHashPlaytime(value: message, hasher: &hasher)
+  }
+}
+
 private class PlaytimePigeonCodecReader: FlutterStandardReader {
   override func readValue(ofType type: UInt8) -> Any? {
     switch type {
@@ -1739,53 +1852,63 @@ private class PlaytimePigeonCodecReader: FlutterStandardReader {
       }
       return nil
     case 134:
-      return CatalogPlacement.fromList(self.readValue() as! [Any?])
+      let enumResultAsInt: Int? = nilOrValue(self.readValue() as! Int?)
+      if let enumResultAsInt = enumResultAsInt {
+        return ShelfStatusKind(rawValue: enumResultAsInt)
+      }
+      return nil
     case 135:
-      return AppCategory.fromList(self.readValue() as! [Any?])
+      return CatalogPlacement.fromList(self.readValue() as! [Any?])
     case 136:
-      return PlaytimeExtensions.fromList(self.readValue() as! [Any?])
+      return AppCategory.fromList(self.readValue() as! [Any?])
     case 137:
-      return InitOptions.fromList(self.readValue() as! [Any?])
+      return PlaytimeExtensions.fromList(self.readValue() as! [Any?])
     case 138:
-      return CatalogOptions.fromList(self.readValue() as! [Any?])
+      return InitOptions.fromList(self.readValue() as! [Any?])
     case 139:
-      return PlaytimeUserProfile.fromList(self.readValue() as! [Any?])
+      return CatalogOptions.fromList(self.readValue() as! [Any?])
     case 140:
-      return PlaytimeEvent.fromList(self.readValue() as! [Any?])
+      return PlaytimeUserProfile.fromList(self.readValue() as! [Any?])
     case 141:
-      return PlaytimeStatus.fromList(self.readValue() as! [Any?])
+      return PlaytimeEvent.fromList(self.readValue() as! [Any?])
     case 142:
-      return PlaytimeStatusDetails.fromList(self.readValue() as! [Any?])
+      return PlaytimeStatus.fromList(self.readValue() as! [Any?])
     case 143:
-      return PlaytimeMetadata.fromList(self.readValue() as! [Any?])
+      return PlaytimeStatusDetails.fromList(self.readValue() as! [Any?])
     case 144:
-      return StudioPlacement.fromList(self.readValue() as! [Any?])
+      return PlaytimeMetadata.fromList(self.readValue() as! [Any?])
     case 145:
-      return DisplayFormat.fromList(self.readValue() as! [Any?])
+      return StudioPlacement.fromList(self.readValue() as! [Any?])
     case 146:
-      return CampaignOptions.fromList(self.readValue() as! [Any?])
+      return DisplayFormat.fromList(self.readValue() as! [Any?])
     case 147:
-      return InstalledCampaignOptions.fromList(self.readValue() as! [Any?])
+      return CampaignOptions.fromList(self.readValue() as! [Any?])
     case 148:
-      return PlaytimeCampaignsResponse.fromList(self.readValue() as! [Any?])
+      return InstalledCampaignOptions.fromList(self.readValue() as! [Any?])
     case 149:
-      return PlaytimeCampaign.fromList(self.readValue() as! [Any?])
+      return PlaytimeCampaignsResponse.fromList(self.readValue() as! [Any?])
     case 150:
-      return PlaytimeMedia.fromList(self.readValue() as! [Any?])
+      return PlaytimeCampaign.fromList(self.readValue() as! [Any?])
     case 151:
-      return PlaytimePromotion.fromList(self.readValue() as! [Any?])
+      return PlaytimeMedia.fromList(self.readValue() as! [Any?])
     case 152:
-      return PlaytimeEventConfig.fromList(self.readValue() as! [Any?])
+      return PlaytimePromotion.fromList(self.readValue() as! [Any?])
     case 153:
-      return PlaytimeRewardAction.fromList(self.readValue() as! [Any?])
+      return PlaytimeEventConfig.fromList(self.readValue() as! [Any?])
     case 154:
-      return PlaytimeRewardActionMultiplier.fromList(self.readValue() as! [Any?])
+      return PlaytimeRewardAction.fromList(self.readValue() as! [Any?])
     case 155:
-      return PlaytimeCashbackConfig.fromList(self.readValue() as! [Any?])
+      return PlaytimeRewardActionMultiplier.fromList(self.readValue() as! [Any?])
     case 156:
-      return PlaytimeCashbackReward.fromList(self.readValue() as! [Any?])
+      return PlaytimeCashbackConfig.fromList(self.readValue() as! [Any?])
     case 157:
+      return PlaytimeCashbackReward.fromList(self.readValue() as! [Any?])
+    case 158:
       return PlaytimeCashbackRewardEvent.fromList(self.readValue() as! [Any?])
+    case 159:
+      return ShelfOptionsMessage.fromList(self.readValue() as! [Any?])
+    case 160:
+      return ShelfStatusMessage.fromList(self.readValue() as! [Any?])
     default:
       return super.readValue(ofType: type)
     }
@@ -1809,77 +1932,86 @@ private class PlaytimePigeonCodecWriter: FlutterStandardWriter {
     } else if let value = value as? TosConsentAction {
       super.writeByte(133)
       super.writeValue(value.rawValue)
-    } else if let value = value as? CatalogPlacement {
+    } else if let value = value as? ShelfStatusKind {
       super.writeByte(134)
-      super.writeValue(value.toList())
-    } else if let value = value as? AppCategory {
+      super.writeValue(value.rawValue)
+    } else if let value = value as? CatalogPlacement {
       super.writeByte(135)
       super.writeValue(value.toList())
-    } else if let value = value as? PlaytimeExtensions {
+    } else if let value = value as? AppCategory {
       super.writeByte(136)
       super.writeValue(value.toList())
-    } else if let value = value as? InitOptions {
+    } else if let value = value as? PlaytimeExtensions {
       super.writeByte(137)
       super.writeValue(value.toList())
-    } else if let value = value as? CatalogOptions {
+    } else if let value = value as? InitOptions {
       super.writeByte(138)
       super.writeValue(value.toList())
-    } else if let value = value as? PlaytimeUserProfile {
+    } else if let value = value as? CatalogOptions {
       super.writeByte(139)
       super.writeValue(value.toList())
-    } else if let value = value as? PlaytimeEvent {
+    } else if let value = value as? PlaytimeUserProfile {
       super.writeByte(140)
       super.writeValue(value.toList())
-    } else if let value = value as? PlaytimeStatus {
+    } else if let value = value as? PlaytimeEvent {
       super.writeByte(141)
       super.writeValue(value.toList())
-    } else if let value = value as? PlaytimeStatusDetails {
+    } else if let value = value as? PlaytimeStatus {
       super.writeByte(142)
       super.writeValue(value.toList())
-    } else if let value = value as? PlaytimeMetadata {
+    } else if let value = value as? PlaytimeStatusDetails {
       super.writeByte(143)
       super.writeValue(value.toList())
-    } else if let value = value as? StudioPlacement {
+    } else if let value = value as? PlaytimeMetadata {
       super.writeByte(144)
       super.writeValue(value.toList())
-    } else if let value = value as? DisplayFormat {
+    } else if let value = value as? StudioPlacement {
       super.writeByte(145)
       super.writeValue(value.toList())
-    } else if let value = value as? CampaignOptions {
+    } else if let value = value as? DisplayFormat {
       super.writeByte(146)
       super.writeValue(value.toList())
-    } else if let value = value as? InstalledCampaignOptions {
+    } else if let value = value as? CampaignOptions {
       super.writeByte(147)
       super.writeValue(value.toList())
-    } else if let value = value as? PlaytimeCampaignsResponse {
+    } else if let value = value as? InstalledCampaignOptions {
       super.writeByte(148)
       super.writeValue(value.toList())
-    } else if let value = value as? PlaytimeCampaign {
+    } else if let value = value as? PlaytimeCampaignsResponse {
       super.writeByte(149)
       super.writeValue(value.toList())
-    } else if let value = value as? PlaytimeMedia {
+    } else if let value = value as? PlaytimeCampaign {
       super.writeByte(150)
       super.writeValue(value.toList())
-    } else if let value = value as? PlaytimePromotion {
+    } else if let value = value as? PlaytimeMedia {
       super.writeByte(151)
       super.writeValue(value.toList())
-    } else if let value = value as? PlaytimeEventConfig {
+    } else if let value = value as? PlaytimePromotion {
       super.writeByte(152)
       super.writeValue(value.toList())
-    } else if let value = value as? PlaytimeRewardAction {
+    } else if let value = value as? PlaytimeEventConfig {
       super.writeByte(153)
       super.writeValue(value.toList())
-    } else if let value = value as? PlaytimeRewardActionMultiplier {
+    } else if let value = value as? PlaytimeRewardAction {
       super.writeByte(154)
       super.writeValue(value.toList())
-    } else if let value = value as? PlaytimeCashbackConfig {
+    } else if let value = value as? PlaytimeRewardActionMultiplier {
       super.writeByte(155)
       super.writeValue(value.toList())
-    } else if let value = value as? PlaytimeCashbackReward {
+    } else if let value = value as? PlaytimeCashbackConfig {
       super.writeByte(156)
       super.writeValue(value.toList())
-    } else if let value = value as? PlaytimeCashbackRewardEvent {
+    } else if let value = value as? PlaytimeCashbackReward {
       super.writeByte(157)
+      super.writeValue(value.toList())
+    } else if let value = value as? PlaytimeCashbackRewardEvent {
+      super.writeByte(158)
+      super.writeValue(value.toList())
+    } else if let value = value as? ShelfOptionsMessage {
+      super.writeByte(159)
+      super.writeValue(value.toList())
+    } else if let value = value as? ShelfStatusMessage {
+      super.writeByte(160)
       super.writeValue(value.toList())
     } else {
       super.writeValue(value)
@@ -2099,22 +2231,6 @@ protocol PlaytimeStudio {
   /// Use this method to open chatbot.
   /// Supported on both Android and iOS.
   func openChatbot(campaign: PlaytimeCampaign?, completion: @escaping (Result<Void, Error>) -> Void)
-  /// Use this method to reset rewards connect.
-  /// Supported on both Android and iOS.
-  func resetRewardsConnect(completion: @escaping (Result<Void, Error>) -> Void)
-  /// Register the user with Playtime. The RewardsConnect sheet will be displayed to the
-  /// user and, on pressing Connect, the following scenarios are possible:
-  /// 1. If the user is not registered with Playtime, the user will be prompted to register
-  /// a new passkey. This passkey will be stored on the user's device (and may be synced to
-  /// iCloud) and associated with the user's Adjoe account.
-  /// 2. If the user is already registered with Playtime, but the SDK is not aware of it
-  /// (e.g. when the app was deleted and reinstalled), the user will be prompted to log in
-  /// with the passkey stored on the device. If the passkey is not present, the will be
-  /// prompted to register a new passkey.
-  /// 3. The user has either registered the passkey or logged in successfully. Any subsequent
-  /// call will return without error.
-  /// Supported on both Android and iOS.
-  func registerRewardsConnect(completion: @escaping (Result<Void, Error>) -> Void)
   /// Execute an impression request for the given campaign.
   /// This method tracks view execution locally and ensures only one view tracking request
   /// is sent to the backend per campaign within a 30-minute window.
@@ -2281,50 +2397,6 @@ class PlaytimeStudioSetup {
       }
     } else {
       openChatbotChannel.setMessageHandler(nil)
-    }
-    /// Use this method to reset rewards connect.
-    /// Supported on both Android and iOS.
-    let resetRewardsConnectChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.adjoe.PlaytimeStudio.resetRewardsConnect\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
-    if let api = api {
-      resetRewardsConnectChannel.setMessageHandler { _, reply in
-        api.resetRewardsConnect { result in
-          switch result {
-          case .success:
-            reply(wrapResult(nil))
-          case .failure(let error):
-            reply(wrapError(error))
-          }
-        }
-      }
-    } else {
-      resetRewardsConnectChannel.setMessageHandler(nil)
-    }
-    /// Register the user with Playtime. The RewardsConnect sheet will be displayed to the
-    /// user and, on pressing Connect, the following scenarios are possible:
-    /// 1. If the user is not registered with Playtime, the user will be prompted to register
-    /// a new passkey. This passkey will be stored on the user's device (and may be synced to
-    /// iCloud) and associated with the user's Adjoe account.
-    /// 2. If the user is already registered with Playtime, but the SDK is not aware of it
-    /// (e.g. when the app was deleted and reinstalled), the user will be prompted to log in
-    /// with the passkey stored on the device. If the passkey is not present, the will be
-    /// prompted to register a new passkey.
-    /// 3. The user has either registered the passkey or logged in successfully. Any subsequent
-    /// call will return without error.
-    /// Supported on both Android and iOS.
-    let registerRewardsConnectChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.adjoe.PlaytimeStudio.registerRewardsConnect\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
-    if let api = api {
-      registerRewardsConnectChannel.setMessageHandler { _, reply in
-        api.registerRewardsConnect { result in
-          switch result {
-          case .success:
-            reply(wrapResult(nil))
-          case .failure(let error):
-            reply(wrapError(error))
-          }
-        }
-      }
-    } else {
-      registerRewardsConnectChannel.setMessageHandler(nil)
     }
     /// Execute an impression request for the given campaign.
     /// This method tracks view execution locally and ensures only one view tracking request
@@ -2514,3 +2586,229 @@ class StreamEventsStreamHandler: PigeonEventChannelWrapper<PlaytimeEvent> {
   }
 }
       
+/// Commands for independently owned, experimental iOS Shelf sessions.
+///
+/// Generated protocol from Pigeon that represents a handler of messages from Flutter.
+protocol ShelfHostApi {
+  func create(controllerId: Int64, options: ShelfOptionsMessage, completion: @escaping (Result<Void, Error>) -> Void)
+  func prefetch(controllerId: Int64) throws
+  func refresh(controllerId: Int64) throws
+  func attach(controllerId: Int64, viewId: Int64, attachmentId: Int64) throws
+  func measure(controllerId: Int64, attachmentId: Int64, width: Double) throws
+  func detach(controllerId: Int64, attachmentId: Int64) throws
+  func dispose(controllerId: Int64) throws
+}
+
+/// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
+class ShelfHostApiSetup {
+  static var codec: FlutterStandardMessageCodec { PlaytimePigeonCodec.shared }
+  /// Sets up an instance of `ShelfHostApi` to handle messages through the `binaryMessenger`.
+  static func setUp(binaryMessenger: FlutterBinaryMessenger, api: ShelfHostApi?, messageChannelSuffix: String = "") {
+    let channelSuffix = messageChannelSuffix.count > 0 ? ".\(messageChannelSuffix)" : ""
+    let createChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.adjoe.ShelfHostApi.create\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      createChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let controllerIdArg = args[0] as! Int64
+        let optionsArg = args[1] as! ShelfOptionsMessage
+        api.create(controllerId: controllerIdArg, options: optionsArg) { result in
+          switch result {
+          case .success:
+            reply(wrapResult(nil))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      createChannel.setMessageHandler(nil)
+    }
+    let prefetchChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.adjoe.ShelfHostApi.prefetch\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      prefetchChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let controllerIdArg = args[0] as! Int64
+        do {
+          try api.prefetch(controllerId: controllerIdArg)
+          reply(wrapResult(nil))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      prefetchChannel.setMessageHandler(nil)
+    }
+    let refreshChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.adjoe.ShelfHostApi.refresh\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      refreshChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let controllerIdArg = args[0] as! Int64
+        do {
+          try api.refresh(controllerId: controllerIdArg)
+          reply(wrapResult(nil))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      refreshChannel.setMessageHandler(nil)
+    }
+    let attachChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.adjoe.ShelfHostApi.attach\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      attachChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let controllerIdArg = args[0] as! Int64
+        let viewIdArg = args[1] as! Int64
+        let attachmentIdArg = args[2] as! Int64
+        do {
+          try api.attach(controllerId: controllerIdArg, viewId: viewIdArg, attachmentId: attachmentIdArg)
+          reply(wrapResult(nil))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      attachChannel.setMessageHandler(nil)
+    }
+    let measureChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.adjoe.ShelfHostApi.measure\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      measureChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let controllerIdArg = args[0] as! Int64
+        let attachmentIdArg = args[1] as! Int64
+        let widthArg = args[2] as! Double
+        do {
+          try api.measure(controllerId: controllerIdArg, attachmentId: attachmentIdArg, width: widthArg)
+          reply(wrapResult(nil))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      measureChannel.setMessageHandler(nil)
+    }
+    let detachChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.adjoe.ShelfHostApi.detach\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      detachChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let controllerIdArg = args[0] as! Int64
+        let attachmentIdArg = args[1] as! Int64
+        do {
+          try api.detach(controllerId: controllerIdArg, attachmentId: attachmentIdArg)
+          reply(wrapResult(nil))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      detachChannel.setMessageHandler(nil)
+    }
+    let disposeChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.adjoe.ShelfHostApi.dispose\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      disposeChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let controllerIdArg = args[0] as! Int64
+        do {
+          try api.dispose(controllerId: controllerIdArg)
+          reply(wrapResult(nil))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      disposeChannel.setMessageHandler(nil)
+    }
+  }
+}
+/// Native callbacks routed to one controller and, for sizes, one mounted view.
+///
+/// Generated protocol from Pigeon that represents Flutter messages that can be called from Swift.
+protocol ShelfFlutterApiProtocol {
+  func statusChanged(controllerId controllerIdArg: Int64, status statusArg: ShelfStatusMessage, completion: @escaping (Result<Void, PigeonError>) -> Void)
+  func sizeChanged(controllerId controllerIdArg: Int64, attachmentId attachmentIdArg: Int64, height heightArg: Double, completion: @escaping (Result<Void, PigeonError>) -> Void)
+  func actionPerformed(controllerId controllerIdArg: Int64, campaignId campaignIdArg: String?, actionName actionNameArg: String, completion: @escaping (Result<Void, PigeonError>) -> Void)
+  func disposed(controllerId controllerIdArg: Int64, completion: @escaping (Result<Void, PigeonError>) -> Void)
+}
+class ShelfFlutterApi: ShelfFlutterApiProtocol {
+  private let binaryMessenger: FlutterBinaryMessenger
+  private let messageChannelSuffix: String
+  init(binaryMessenger: FlutterBinaryMessenger, messageChannelSuffix: String = "") {
+    self.binaryMessenger = binaryMessenger
+    self.messageChannelSuffix = messageChannelSuffix.count > 0 ? ".\(messageChannelSuffix)" : ""
+  }
+  var codec: PlaytimePigeonCodec {
+    return PlaytimePigeonCodec.shared
+  }
+  func statusChanged(controllerId controllerIdArg: Int64, status statusArg: ShelfStatusMessage, completion: @escaping (Result<Void, PigeonError>) -> Void) {
+    let channelName: String = "dev.flutter.pigeon.adjoe.ShelfFlutterApi.statusChanged\(messageChannelSuffix)"
+    let channel = FlutterBasicMessageChannel(name: channelName, binaryMessenger: binaryMessenger, codec: codec)
+    channel.sendMessage([controllerIdArg, statusArg] as [Any?]) { response in
+      guard let listResponse = response as? [Any?] else {
+        completion(.failure(createConnectionError(withChannelName: channelName)))
+        return
+      }
+      if listResponse.count > 1 {
+        let code: String = listResponse[0] as! String
+        let message: String? = nilOrValue(listResponse[1])
+        let details: String? = nilOrValue(listResponse[2])
+        completion(.failure(PigeonError(code: code, message: message, details: details)))
+      } else {
+        completion(.success(()))
+      }
+    }
+  }
+  func sizeChanged(controllerId controllerIdArg: Int64, attachmentId attachmentIdArg: Int64, height heightArg: Double, completion: @escaping (Result<Void, PigeonError>) -> Void) {
+    let channelName: String = "dev.flutter.pigeon.adjoe.ShelfFlutterApi.sizeChanged\(messageChannelSuffix)"
+    let channel = FlutterBasicMessageChannel(name: channelName, binaryMessenger: binaryMessenger, codec: codec)
+    channel.sendMessage([controllerIdArg, attachmentIdArg, heightArg] as [Any?]) { response in
+      guard let listResponse = response as? [Any?] else {
+        completion(.failure(createConnectionError(withChannelName: channelName)))
+        return
+      }
+      if listResponse.count > 1 {
+        let code: String = listResponse[0] as! String
+        let message: String? = nilOrValue(listResponse[1])
+        let details: String? = nilOrValue(listResponse[2])
+        completion(.failure(PigeonError(code: code, message: message, details: details)))
+      } else {
+        completion(.success(()))
+      }
+    }
+  }
+  func actionPerformed(controllerId controllerIdArg: Int64, campaignId campaignIdArg: String?, actionName actionNameArg: String, completion: @escaping (Result<Void, PigeonError>) -> Void) {
+    let channelName: String = "dev.flutter.pigeon.adjoe.ShelfFlutterApi.actionPerformed\(messageChannelSuffix)"
+    let channel = FlutterBasicMessageChannel(name: channelName, binaryMessenger: binaryMessenger, codec: codec)
+    channel.sendMessage([controllerIdArg, campaignIdArg, actionNameArg] as [Any?]) { response in
+      guard let listResponse = response as? [Any?] else {
+        completion(.failure(createConnectionError(withChannelName: channelName)))
+        return
+      }
+      if listResponse.count > 1 {
+        let code: String = listResponse[0] as! String
+        let message: String? = nilOrValue(listResponse[1])
+        let details: String? = nilOrValue(listResponse[2])
+        completion(.failure(PigeonError(code: code, message: message, details: details)))
+      } else {
+        completion(.success(()))
+      }
+    }
+  }
+  func disposed(controllerId controllerIdArg: Int64, completion: @escaping (Result<Void, PigeonError>) -> Void) {
+    let channelName: String = "dev.flutter.pigeon.adjoe.ShelfFlutterApi.disposed\(messageChannelSuffix)"
+    let channel = FlutterBasicMessageChannel(name: channelName, binaryMessenger: binaryMessenger, codec: codec)
+    channel.sendMessage([controllerIdArg] as [Any?]) { response in
+      guard let listResponse = response as? [Any?] else {
+        completion(.failure(createConnectionError(withChannelName: channelName)))
+        return
+      }
+      if listResponse.count > 1 {
+        let code: String = listResponse[0] as! String
+        let message: String? = nilOrValue(listResponse[1])
+        let details: String? = nilOrValue(listResponse[2])
+        completion(.failure(PigeonError(code: code, message: message, details: details)))
+      } else {
+        completion(.success(()))
+      }
+    }
+  }
+}

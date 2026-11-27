@@ -15,6 +15,9 @@ import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 private object PlaytimePigeonUtils {
 
+  fun createConnectionError(channelName: String): FlutterError {
+    return FlutterError("channel-error",  "Unable to establish connection on channel: '$channelName'.", "")  }
+
   fun wrapResult(result: Any?): List<Any?> {
     return listOf(result)
   }
@@ -278,6 +281,20 @@ enum class TosConsentAction(val raw: Int) {
 
   companion object {
     fun ofRaw(raw: Int): TosConsentAction? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
+enum class ShelfStatusKind(val raw: Int) {
+  IDLE(0),
+  LOADING(1),
+  READY(2),
+  EMPTY(3),
+  UNAVAILABLE(4);
+
+  companion object {
+    fun ofRaw(raw: Int): ShelfStatusKind? {
       return values().firstOrNull { it.raw == raw }
     }
   }
@@ -1796,6 +1813,110 @@ data class PlaytimeCashbackRewardEvent (
     return result
   }
 }
+
+/**
+ * Transport options for the experimental iOS Shelf integration.
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class ShelfOptionsMessage (
+  val placement: String,
+  val requestedVariant: String? = null,
+  val category: String
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): ShelfOptionsMessage {
+      val placement = pigeonVar_list[0] as String
+      val requestedVariant = pigeonVar_list[1] as String?
+      val category = pigeonVar_list[2] as String
+      return ShelfOptionsMessage(placement, requestedVariant, category)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      placement,
+      requestedVariant,
+      category,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other == null || other.javaClass != javaClass) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    val other = other as ShelfOptionsMessage
+    return PlaytimePigeonUtils.deepEquals(this.placement, other.placement) && PlaytimePigeonUtils.deepEquals(this.requestedVariant, other.requestedVariant) && PlaytimePigeonUtils.deepEquals(this.category, other.category)
+  }
+
+  override fun hashCode(): Int {
+    var result = javaClass.hashCode()
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.placement)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.requestedVariant)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.category)
+    return result
+  }
+}
+
+/**
+ * A flattened transport representation of the native Shelf status.
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class ShelfStatusMessage (
+  val kind: ShelfStatusKind,
+  val availableCampaigns: Long? = null,
+  val installedCampaigns: Long? = null,
+  val reason: String? = null,
+  val retryable: Boolean? = null,
+  val message: String? = null
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): ShelfStatusMessage {
+      val kind = pigeonVar_list[0] as ShelfStatusKind
+      val availableCampaigns = pigeonVar_list[1] as Long?
+      val installedCampaigns = pigeonVar_list[2] as Long?
+      val reason = pigeonVar_list[3] as String?
+      val retryable = pigeonVar_list[4] as Boolean?
+      val message = pigeonVar_list[5] as String?
+      return ShelfStatusMessage(kind, availableCampaigns, installedCampaigns, reason, retryable, message)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      kind,
+      availableCampaigns,
+      installedCampaigns,
+      reason,
+      retryable,
+      message,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other == null || other.javaClass != javaClass) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    val other = other as ShelfStatusMessage
+    return PlaytimePigeonUtils.deepEquals(this.kind, other.kind) && PlaytimePigeonUtils.deepEquals(this.availableCampaigns, other.availableCampaigns) && PlaytimePigeonUtils.deepEquals(this.installedCampaigns, other.installedCampaigns) && PlaytimePigeonUtils.deepEquals(this.reason, other.reason) && PlaytimePigeonUtils.deepEquals(this.retryable, other.retryable) && PlaytimePigeonUtils.deepEquals(this.message, other.message)
+  }
+
+  override fun hashCode(): Int {
+    var result = javaClass.hashCode()
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.kind)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.availableCampaigns)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.installedCampaigns)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.reason)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.retryable)
+    result = 31 * result + PlaytimePigeonUtils.deepHash(this.message)
+    return result
+  }
+}
 private open class PlaytimePigeonCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
     return when (type) {
@@ -1825,123 +1946,138 @@ private open class PlaytimePigeonCodec : StandardMessageCodec() {
         }
       }
       134.toByte() -> {
-        return (readValue(buffer) as? List<Any?>)?.let {
-          CatalogPlacement.fromList(it)
+        return (readValue(buffer) as Long?)?.let {
+          ShelfStatusKind.ofRaw(it.toInt())
         }
       }
       135.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          AppCategory.fromList(it)
+          CatalogPlacement.fromList(it)
         }
       }
       136.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeExtensions.fromList(it)
+          AppCategory.fromList(it)
         }
       }
       137.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          InitOptions.fromList(it)
+          PlaytimeExtensions.fromList(it)
         }
       }
       138.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          CatalogOptions.fromList(it)
+          InitOptions.fromList(it)
         }
       }
       139.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeUserProfile.fromList(it)
+          CatalogOptions.fromList(it)
         }
       }
       140.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeEvent.fromList(it)
+          PlaytimeUserProfile.fromList(it)
         }
       }
       141.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeStatus.fromList(it)
+          PlaytimeEvent.fromList(it)
         }
       }
       142.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeStatusDetails.fromList(it)
+          PlaytimeStatus.fromList(it)
         }
       }
       143.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeMetadata.fromList(it)
+          PlaytimeStatusDetails.fromList(it)
         }
       }
       144.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          StudioPlacement.fromList(it)
+          PlaytimeMetadata.fromList(it)
         }
       }
       145.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          DisplayFormat.fromList(it)
+          StudioPlacement.fromList(it)
         }
       }
       146.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          CampaignOptions.fromList(it)
+          DisplayFormat.fromList(it)
         }
       }
       147.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          InstalledCampaignOptions.fromList(it)
+          CampaignOptions.fromList(it)
         }
       }
       148.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeCampaignsResponse.fromList(it)
+          InstalledCampaignOptions.fromList(it)
         }
       }
       149.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeCampaign.fromList(it)
+          PlaytimeCampaignsResponse.fromList(it)
         }
       }
       150.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeMedia.fromList(it)
+          PlaytimeCampaign.fromList(it)
         }
       }
       151.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimePromotion.fromList(it)
+          PlaytimeMedia.fromList(it)
         }
       }
       152.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeEventConfig.fromList(it)
+          PlaytimePromotion.fromList(it)
         }
       }
       153.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeRewardAction.fromList(it)
+          PlaytimeEventConfig.fromList(it)
         }
       }
       154.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeRewardActionMultiplier.fromList(it)
+          PlaytimeRewardAction.fromList(it)
         }
       }
       155.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeCashbackConfig.fromList(it)
+          PlaytimeRewardActionMultiplier.fromList(it)
         }
       }
       156.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PlaytimeCashbackReward.fromList(it)
+          PlaytimeCashbackConfig.fromList(it)
         }
       }
       157.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
+          PlaytimeCashbackReward.fromList(it)
+        }
+      }
+      158.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
           PlaytimeCashbackRewardEvent.fromList(it)
+        }
+      }
+      159.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          ShelfOptionsMessage.fromList(it)
+        }
+      }
+      160.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          ShelfStatusMessage.fromList(it)
         }
       }
       else -> super.readValueOfType(type, buffer)
@@ -1969,100 +2105,112 @@ private open class PlaytimePigeonCodec : StandardMessageCodec() {
         stream.write(133)
         writeValue(stream, value.raw.toLong())
       }
-      is CatalogPlacement -> {
+      is ShelfStatusKind -> {
         stream.write(134)
-        writeValue(stream, value.toList())
+        writeValue(stream, value.raw.toLong())
       }
-      is AppCategory -> {
+      is CatalogPlacement -> {
         stream.write(135)
         writeValue(stream, value.toList())
       }
-      is PlaytimeExtensions -> {
+      is AppCategory -> {
         stream.write(136)
         writeValue(stream, value.toList())
       }
-      is InitOptions -> {
+      is PlaytimeExtensions -> {
         stream.write(137)
         writeValue(stream, value.toList())
       }
-      is CatalogOptions -> {
+      is InitOptions -> {
         stream.write(138)
         writeValue(stream, value.toList())
       }
-      is PlaytimeUserProfile -> {
+      is CatalogOptions -> {
         stream.write(139)
         writeValue(stream, value.toList())
       }
-      is PlaytimeEvent -> {
+      is PlaytimeUserProfile -> {
         stream.write(140)
         writeValue(stream, value.toList())
       }
-      is PlaytimeStatus -> {
+      is PlaytimeEvent -> {
         stream.write(141)
         writeValue(stream, value.toList())
       }
-      is PlaytimeStatusDetails -> {
+      is PlaytimeStatus -> {
         stream.write(142)
         writeValue(stream, value.toList())
       }
-      is PlaytimeMetadata -> {
+      is PlaytimeStatusDetails -> {
         stream.write(143)
         writeValue(stream, value.toList())
       }
-      is StudioPlacement -> {
+      is PlaytimeMetadata -> {
         stream.write(144)
         writeValue(stream, value.toList())
       }
-      is DisplayFormat -> {
+      is StudioPlacement -> {
         stream.write(145)
         writeValue(stream, value.toList())
       }
-      is CampaignOptions -> {
+      is DisplayFormat -> {
         stream.write(146)
         writeValue(stream, value.toList())
       }
-      is InstalledCampaignOptions -> {
+      is CampaignOptions -> {
         stream.write(147)
         writeValue(stream, value.toList())
       }
-      is PlaytimeCampaignsResponse -> {
+      is InstalledCampaignOptions -> {
         stream.write(148)
         writeValue(stream, value.toList())
       }
-      is PlaytimeCampaign -> {
+      is PlaytimeCampaignsResponse -> {
         stream.write(149)
         writeValue(stream, value.toList())
       }
-      is PlaytimeMedia -> {
+      is PlaytimeCampaign -> {
         stream.write(150)
         writeValue(stream, value.toList())
       }
-      is PlaytimePromotion -> {
+      is PlaytimeMedia -> {
         stream.write(151)
         writeValue(stream, value.toList())
       }
-      is PlaytimeEventConfig -> {
+      is PlaytimePromotion -> {
         stream.write(152)
         writeValue(stream, value.toList())
       }
-      is PlaytimeRewardAction -> {
+      is PlaytimeEventConfig -> {
         stream.write(153)
         writeValue(stream, value.toList())
       }
-      is PlaytimeRewardActionMultiplier -> {
+      is PlaytimeRewardAction -> {
         stream.write(154)
         writeValue(stream, value.toList())
       }
-      is PlaytimeCashbackConfig -> {
+      is PlaytimeRewardActionMultiplier -> {
         stream.write(155)
         writeValue(stream, value.toList())
       }
-      is PlaytimeCashbackReward -> {
+      is PlaytimeCashbackConfig -> {
         stream.write(156)
         writeValue(stream, value.toList())
       }
-      is PlaytimeCashbackRewardEvent -> {
+      is PlaytimeCashbackReward -> {
         stream.write(157)
+        writeValue(stream, value.toList())
+      }
+      is PlaytimeCashbackRewardEvent -> {
+        stream.write(158)
+        writeValue(stream, value.toList())
+      }
+      is ShelfOptionsMessage -> {
+        stream.write(159)
+        writeValue(stream, value.toList())
+      }
+      is ShelfStatusMessage -> {
+        stream.write(160)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)
@@ -2302,26 +2450,6 @@ interface PlaytimeStudio {
    */
   fun openChatbot(campaign: PlaytimeCampaign?, callback: (Result<Unit>) -> Unit)
   /**
-   * Use this method to reset rewards connect.
-   * Supported on both Android and iOS.
-   */
-  fun resetRewardsConnect(callback: (Result<Unit>) -> Unit)
-  /**
-   * Register the user with Playtime. The RewardsConnect sheet will be displayed to the
-   * user and, on pressing Connect, the following scenarios are possible:
-   * 1. If the user is not registered with Playtime, the user will be prompted to register
-   * a new passkey. This passkey will be stored on the user's device (and may be synced to
-   * iCloud) and associated with the user's Adjoe account.
-   * 2. If the user is already registered with Playtime, but the SDK is not aware of it
-   * (e.g. when the app was deleted and reinstalled), the user will be prompted to log in
-   * with the passkey stored on the device. If the passkey is not present, the will be
-   * prompted to register a new passkey.
-   * 3. The user has either registered the passkey or logged in successfully. Any subsequent
-   * call will return without error.
-   * Supported on both Android and iOS.
-   */
-  fun registerRewardsConnect(callback: (Result<Unit>) -> Unit)
-  /**
    * Execute an impression request for the given campaign.
    * This method tracks view execution locally and ensures only one view tracking request
    * is sent to the backend per campaign within a 30-minute window.
@@ -2491,40 +2619,6 @@ interface PlaytimeStudio {
             val args = message as List<Any?>
             val campaignArg = args[0] as PlaytimeCampaign?
             api.openChatbot(campaignArg) { result: Result<Unit> ->
-              val error = result.exceptionOrNull()
-              if (error != null) {
-                reply.reply(PlaytimePigeonUtils.wrapError(error))
-              } else {
-                reply.reply(PlaytimePigeonUtils.wrapResult(null))
-              }
-            }
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.PlaytimeStudio.resetRewardsConnect$separatedMessageChannelSuffix", codec)
-        if (api != null) {
-          channel.setMessageHandler { _, reply ->
-            api.resetRewardsConnect{ result: Result<Unit> ->
-              val error = result.exceptionOrNull()
-              if (error != null) {
-                reply.reply(PlaytimePigeonUtils.wrapError(error))
-              } else {
-                reply.reply(PlaytimePigeonUtils.wrapResult(null))
-              }
-            }
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.PlaytimeStudio.registerRewardsConnect$separatedMessageChannelSuffix", codec)
-        if (api != null) {
-          channel.setMessageHandler { _, reply ->
-            api.registerRewardsConnect{ result: Result<Unit> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(PlaytimePigeonUtils.wrapError(error))
@@ -2714,3 +2808,243 @@ override fun onListen(p0: Any?, sink: PigeonEventSink<PlaytimeEvent>) {}
 override fun onCancel(p0: Any?) {}
 }
       
+/**
+ * Commands for independently owned, experimental iOS Shelf sessions.
+ *
+ * Generated interface from Pigeon that represents a handler of messages from Flutter.
+ */
+interface ShelfHostApi {
+  fun create(controllerId: Long, options: ShelfOptionsMessage, callback: (Result<Unit>) -> Unit)
+  fun prefetch(controllerId: Long)
+  fun refresh(controllerId: Long)
+  fun attach(controllerId: Long, viewId: Long, attachmentId: Long)
+  fun measure(controllerId: Long, attachmentId: Long, width: Double)
+  fun detach(controllerId: Long, attachmentId: Long)
+  fun dispose(controllerId: Long)
+
+  companion object {
+    /** The codec used by ShelfHostApi. */
+    val codec: MessageCodec<Any?> by lazy {
+      PlaytimePigeonCodec()
+    }
+    /** Sets up an instance of `ShelfHostApi` to handle messages through the `binaryMessenger`. */
+    @JvmOverloads
+    fun setUp(binaryMessenger: BinaryMessenger, api: ShelfHostApi?, messageChannelSuffix: String = "") {
+      val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.ShelfHostApi.create$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val controllerIdArg = args[0] as Long
+            val optionsArg = args[1] as ShelfOptionsMessage
+            api.create(controllerIdArg, optionsArg) { result: Result<Unit> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(PlaytimePigeonUtils.wrapError(error))
+              } else {
+                reply.reply(PlaytimePigeonUtils.wrapResult(null))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.ShelfHostApi.prefetch$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val controllerIdArg = args[0] as Long
+            val wrapped: List<Any?> = try {
+              api.prefetch(controllerIdArg)
+              listOf(null)
+            } catch (exception: Throwable) {
+              PlaytimePigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.ShelfHostApi.refresh$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val controllerIdArg = args[0] as Long
+            val wrapped: List<Any?> = try {
+              api.refresh(controllerIdArg)
+              listOf(null)
+            } catch (exception: Throwable) {
+              PlaytimePigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.ShelfHostApi.attach$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val controllerIdArg = args[0] as Long
+            val viewIdArg = args[1] as Long
+            val attachmentIdArg = args[2] as Long
+            val wrapped: List<Any?> = try {
+              api.attach(controllerIdArg, viewIdArg, attachmentIdArg)
+              listOf(null)
+            } catch (exception: Throwable) {
+              PlaytimePigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.ShelfHostApi.measure$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val controllerIdArg = args[0] as Long
+            val attachmentIdArg = args[1] as Long
+            val widthArg = args[2] as Double
+            val wrapped: List<Any?> = try {
+              api.measure(controllerIdArg, attachmentIdArg, widthArg)
+              listOf(null)
+            } catch (exception: Throwable) {
+              PlaytimePigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.ShelfHostApi.detach$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val controllerIdArg = args[0] as Long
+            val attachmentIdArg = args[1] as Long
+            val wrapped: List<Any?> = try {
+              api.detach(controllerIdArg, attachmentIdArg)
+              listOf(null)
+            } catch (exception: Throwable) {
+              PlaytimePigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.adjoe.ShelfHostApi.dispose$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val controllerIdArg = args[0] as Long
+            val wrapped: List<Any?> = try {
+              api.dispose(controllerIdArg)
+              listOf(null)
+            } catch (exception: Throwable) {
+              PlaytimePigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+    }
+  }
+}
+/**
+ * Native callbacks routed to one controller and, for sizes, one mounted view.
+ *
+ * Generated class from Pigeon that represents Flutter messages that can be called from Kotlin.
+ */
+class ShelfFlutterApi(private val binaryMessenger: BinaryMessenger, private val messageChannelSuffix: String = "") {
+  companion object {
+    /** The codec used by ShelfFlutterApi. */
+    val codec: MessageCodec<Any?> by lazy {
+      PlaytimePigeonCodec()
+    }
+  }
+  fun statusChanged(controllerIdArg: Long, statusArg: ShelfStatusMessage, callback: (Result<Unit>) -> Unit)
+{
+    val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
+    val channelName = "dev.flutter.pigeon.adjoe.ShelfFlutterApi.statusChanged$separatedMessageChannelSuffix"
+    val channel = BasicMessageChannel<Any?>(binaryMessenger, channelName, codec)
+    channel.send(listOf(controllerIdArg, statusArg)) {
+      if (it is List<*>) {
+        if (it.size > 1) {
+          callback(Result.failure(FlutterError(it[0] as String, it[1] as String, it[2] as String?)))
+        } else {
+          callback(Result.success(Unit))
+        }
+      } else {
+        callback(Result.failure(PlaytimePigeonUtils.createConnectionError(channelName)))
+      } 
+    }
+  }
+  fun sizeChanged(controllerIdArg: Long, attachmentIdArg: Long, heightArg: Double, callback: (Result<Unit>) -> Unit)
+{
+    val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
+    val channelName = "dev.flutter.pigeon.adjoe.ShelfFlutterApi.sizeChanged$separatedMessageChannelSuffix"
+    val channel = BasicMessageChannel<Any?>(binaryMessenger, channelName, codec)
+    channel.send(listOf(controllerIdArg, attachmentIdArg, heightArg)) {
+      if (it is List<*>) {
+        if (it.size > 1) {
+          callback(Result.failure(FlutterError(it[0] as String, it[1] as String, it[2] as String?)))
+        } else {
+          callback(Result.success(Unit))
+        }
+      } else {
+        callback(Result.failure(PlaytimePigeonUtils.createConnectionError(channelName)))
+      } 
+    }
+  }
+  fun actionPerformed(controllerIdArg: Long, campaignIdArg: String?, actionNameArg: String, callback: (Result<Unit>) -> Unit)
+{
+    val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
+    val channelName = "dev.flutter.pigeon.adjoe.ShelfFlutterApi.actionPerformed$separatedMessageChannelSuffix"
+    val channel = BasicMessageChannel<Any?>(binaryMessenger, channelName, codec)
+    channel.send(listOf(controllerIdArg, campaignIdArg, actionNameArg)) {
+      if (it is List<*>) {
+        if (it.size > 1) {
+          callback(Result.failure(FlutterError(it[0] as String, it[1] as String, it[2] as String?)))
+        } else {
+          callback(Result.success(Unit))
+        }
+      } else {
+        callback(Result.failure(PlaytimePigeonUtils.createConnectionError(channelName)))
+      } 
+    }
+  }
+  fun disposed(controllerIdArg: Long, callback: (Result<Unit>) -> Unit)
+{
+    val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
+    val channelName = "dev.flutter.pigeon.adjoe.ShelfFlutterApi.disposed$separatedMessageChannelSuffix"
+    val channel = BasicMessageChannel<Any?>(binaryMessenger, channelName, codec)
+    channel.send(listOf(controllerIdArg)) {
+      if (it is List<*>) {
+        if (it.size > 1) {
+          callback(Result.failure(FlutterError(it[0] as String, it[1] as String, it[2] as String?)))
+        } else {
+          callback(Result.success(Unit))
+        }
+      } else {
+        callback(Result.failure(PlaytimePigeonUtils.createConnectionError(channelName)))
+      } 
+    }
+  }
+}

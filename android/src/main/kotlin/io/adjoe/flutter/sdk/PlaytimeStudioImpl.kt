@@ -2,8 +2,6 @@ package io.adjoe.flutter.sdk
 
 import android.app.Activity
 import io.adjoe.sdk.PlaytimeException
-import io.adjoe.sdk.connect.RewardsConnectRegistrationListener
-import io.adjoe.sdk.connect.RewardsConnectResetListener
 import io.adjoe.sdk.studio.PlaytimeCampaignsListener
 import io.adjoe.sdk.studio.PlaytimeDeeplinkListener
 import io.adjoe.sdk.studio.PlaytimeExecuteImpressionListener
@@ -357,41 +355,6 @@ class PlaytimeStudioImpl() : PlaytimeStudio {
             currentActivity,
             playtimeCampaign,
             createDeeplinkListener(callback)
-        )
-    }
-
-    override fun resetRewardsConnect(callback: (Result<Unit>) -> Unit) {
-        io.adjoe.sdk.studio.PlaytimeStudio.resetRewardsConnect(
-            object : RewardsConnectResetListener {
-                override fun onSuccess() {
-                    callback(Result.success(Unit))
-                }
-
-                override fun onFailure(error: PlaytimeException) {
-                    callback(Result.failure(ErrorsUtil.toFlutterError(ErrorsUtil.toPlaytimeException(error))))
-                }
-            }
-        )
-    }
-
-    override fun registerRewardsConnect(callback: (Result<Unit>) -> Unit) {
-        val currentActivity = activity ?: run {
-            return callback(
-                Result.failure(ErrorsUtil.toFlutterError(ErrorsUtil.getActivityIsNullError()))
-            )
-        }
-
-        io.adjoe.sdk.studio.PlaytimeStudio.registerRewardsConnect(
-            currentActivity,
-            object : RewardsConnectRegistrationListener {
-                override fun onSuccess() {
-                    callback(Result.success(Unit))
-                }
-
-                override fun onFailure(error: PlaytimeException) {
-                    callback(Result.failure(ErrorsUtil.toFlutterError(ErrorsUtil.toPlaytimeException(error))))
-                }
-            }
         )
     }
 
